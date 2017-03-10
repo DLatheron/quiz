@@ -1,0 +1,17 @@
+<% layout('layout') -%>
+
+<h1 class='question-title'>Question
+    <% if (typeof number != 'undefined') { %>
+        (<%= number %> of <%= of %>)
+    <% } %>
+</h1>
+<p class='question-text'>
+    <%= text %>
+</p>
+<ol class='question-answers'>
+    <% answers.forEach(function(answer) { %>
+           
+    <li class='question-answer' onclick='alert("<%= answer %>")'><%= answer %>
+    </li>
+    <% }) %>
+</ol>

@@ -1,0 +1,63 @@
+body {
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #00B7FF;
+}
+
+.question-title {
+}
+
+.question-text {
+}
+
+.question-answers {
+    list-style-type: upper-alpha;
+}
+
+.question-answer {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid black;
+}
+
+.question-answer:hover {
+    cursor: pointer;
+}
+
+.question-answer:nth-child(odd) {
+    background-color: darkgray;
+}
+
+.question-answer:nth-child(even) {
+    background-color: lightgray;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+.lock-to-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.marginBottom-0 {
+    margin-bottom: 0;
+}
+
+@media (min-width: 767px) {
+    .navbar-nav .dropdown-menu .caret {
+        transform: rotate(-90deg);
+    }
+}

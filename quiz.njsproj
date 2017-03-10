@@ -20,6 +20,18 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Compile Include="src\Mongo.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="src\Question.js">
+      <SubType>Code</SubType>
+    </Compile>
+    <Content Include="config\config.json">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="config\secret-config.json">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="package.json" />
     <Compile Include="app.js" />
     <Compile Include="routes\index.js" />
@@ -27,6 +39,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="routes\users.js" />
+    <Content Include="Snippets.txt">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="views\error.ejs" />
     <Content Include="views\layout.ejs" />
     <Content Include="views\question.ejs" />
@@ -38,11 +53,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin" />
+    <Folder Include="config\" />
     <Folder Include="public" />
     <Folder Include="public\images" />
     <Folder Include="public\javascripts" />
     <Folder Include="public\stylesheets" />
-    <Folder Include="quiz" />
+    <Folder Include="src\" />
     <Folder Include="routes" />
     <Folder Include="views" />
     <Folder Include="views\templates\" />

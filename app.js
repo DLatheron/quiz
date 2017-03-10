@@ -9,6 +9,7 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var question = require('./routes/question');
+var mongo = require('./src/Mongo');
 
 var app = express();
 

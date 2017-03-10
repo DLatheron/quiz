@@ -3,7 +3,7 @@ const ObjectID = require('mongodb').ObjectID;
 const assert = require('assert');
 
 module.exports = () => {
-    const connectionUri = "mongodb://Quiz:{wj+dPB0`7-ta4wRensZVG9OXs@cluster0-shard-00-00-upqcx.mongodb.net:27017,cluster0-shard-00-01-upqcx.mongodb.net:27017,cluster0-shard-00-02-upqcx.mongodb.net:27017/<DATABASE>?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin";
+    const connectionUri = "mongodb://Quiz:{wj+dPB0`7-ta4wRensZVG9OXs@cluster0-shard-00-00-upqcx.mongodb.net:27017,cluster0-shard-00-01-upqcx.mongodb.net:27017,cluster0-shard-00-02-upqcx.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin";
 
     let mongoDb;
 
@@ -18,10 +18,9 @@ module.exports = () => {
             mongoDb.disconnect();
         },
         getQuestion: (callback) => {
-            mongoDb.collection('Questions', (error, collection) => {
-                collection.findOne({ '_id': ObjectID('58c2fc5db2a241e48737a9b9') }, (error, results) => {
-                    callback(results);
-                });
+            const questions = mongoDb.collection('Questions');
+            questions.findOne({}, (error, question) => {
+                callback(question);
             });
         }
     };

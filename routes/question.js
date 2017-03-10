@@ -13,15 +13,8 @@ router.get('/', function (req, res, next) {
                 title: 'Question',
                 number: 1,
                 of: 4,
-                text: 'What is the capital of Sweden?',
-                answers: shuffle([
-                    'Berlin',
-                    'Paris',
-                    'Copenhagen',
-                    'Stockholm',
-                    'London',
-                    'Cardiff'
-                ])
+                text: question.text,
+                answers: shuffle(question.answers)
             });
         });
     });

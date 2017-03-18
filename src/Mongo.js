@@ -1,24 +1,24 @@
-﻿const MongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID;
-const assert = require('assert');
+﻿/* globals require, module */
+'use strict';
+
+const MongoClient = require('mongodb').MongoClient;
 
 module.exports = () => {
-    const connectionUri = "mongodb://Quiz:{wj+dPB0`7-ta4wRensZVG9OXs@cluster0-shard-00-00-upqcx.mongodb.net:27017,cluster0-shard-00-01-upqcx.mongodb.net:27017,cluster0-shard-00-02-upqcx.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin";
-
-    let mongoDb;
-
     return {
-        connect: (next) => {
-            MongoClient.connect(connectionUri, function (error, db) {
-                mongoDb = db;
-                next(error, db);
+        connect: (uri, callback) => {
+            this.mongoUri = uri;
+            MongoClient.connect(uri, (error, db) => {
+                if (error) {
+                    return callback(error);
+                }
+                this.mongoDb = db;
             });
         },
         disconnect: () => {
-            mongoDb.disconnect();
+            this.mongoDb.close();
         },
         getQuestion: (callback) => {
-            const questions = mongoDb.collection('Questions');
+            const questions = this.mongoDb.collection('questions');
             questions.findOne({}, (error, question) => {
                 callback(question);
             });

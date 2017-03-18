@@ -1,13 +1,14 @@
-﻿module.exports = () => {
-    return {
-        text: 'What is the capital of Sweden?',
-        answers: [
-            'Stockholm',
-            'Berlin',
-            'Paris',
-            'Copenhagen',
-            'London',
-            'Cardiff'
-        ]
+﻿/* globals module */
+
+const questionFactory = function(questionState) {
+    const defaultState = {
+        text: '',
+        answers: []
     };
+
+    const question = Object.assign({}, defaultState, questionState);
+
+    return question;
 };
+
+module.exports = questionFactory;

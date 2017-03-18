@@ -1,17 +1,33 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var engine = require('ejs-locals');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+/* globals console,require,module,__dirname */
+'use strict';
+const express = require('express');
+const path = require('path');
+const argv = require('yargs').argv;
+//const favicon = require('serve-favicon');
+const engine = require('ejs-locals');
+const morgan = require('morgan');
+const nconf = require('nconf');
+const logger = require('js-logging').console();
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-var question = require('./routes/question');
-var mongo = require('./src/Mongo');
+const index = require('./routes/index');
+const users = require('./routes/users');
+const question = require('./routes/question');
+const Mongo = require('./src/Mongo');
 
-var app = express();
+const app = express();
+
+if (!argv.config) {
+    argv.config = 'config/config.json';
+}
+
+if (!argv.secretConfig) {
+    argv.secretConfig = 'config/secret-config.json';
+}
+
+nconf.argv().env().file({ file: argv.config });
+nconf.file('custom', argv.secretConfig);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -20,11 +36,37 @@ app.set('view engine', 'ejs');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+const mongoUri = nconf.get('MongoUri')
+    .replace('[USERNAME]', nconf.get('MongoUsername'))
+    .replace('[PASSWORD]', nconf.get('MongoPassword'))
+    .replace('[DATABASE]', nconf.get('MongoDatabase'));
+
+let mongo;
+
+app.use((req, res, next) => {
+    if (mongo === undefined) {
+        mongo = Mongo();
+        mongo.connect(mongoUri, (error) => {
+            if (error) {
+                logger.error(error);
+                throw error;
+            }
+
+            logger.info(`Connected to database: ${mongoUri}`);
+            req.db = mongo;
+            next();
+        });
+    } else {
+        req.db = mongo;
+        next();
+    }
+});
 
 app.use('/', index);
 app.use('/users', users);
@@ -46,9 +88,11 @@ app.use(function (err, req, res, next) {
     // render the error page
     res.status(err.status || 500);
     res.render('error');
+    next();
 });
 
 app.get('/', function (req, res, next) {
+    next();
 });
 
 module.exports = app;

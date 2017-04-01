@@ -1,2 +1,0 @@
-C:\Work\Personal\Node\quiz\bin\Microsoft.NodejsTools.WebRole.dll
-c:\Work\Personal\Node\quiz\obj\Debug\quiz.njsprojResolveAssemblyReference.cache

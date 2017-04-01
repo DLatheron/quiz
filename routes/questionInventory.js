@@ -16,7 +16,31 @@ router.get('/', (req, res) => {
             ],
             author: 'fredBloggs',
             date: new Date(),
-        }
+        },
+        {
+            id: '000002',
+            text: 'How many things are were there',
+            answers: [
+                '1',
+                '2',
+                '3',
+                '4'                
+            ],
+            author: 'fredBloggs',
+            date: new Date(),
+        },
+        {
+            id: '000003',
+            text: 'What is the capital of France?',
+            answers: [
+                'F',
+                'R',
+                'A',
+                'Paris'                
+            ],
+            author: 'fredBloggs',
+            date: new Date(),
+        }        
     ];
 
     res.render('questionInventory', {

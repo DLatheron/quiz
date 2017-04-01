@@ -4,18 +4,28 @@ const router = express.Router();
 const shuffle = require('shuffle-array');
 
 router.get('/', (req, res) => {
-    req.db.getQuestion((error, question) => {
-        res.render('question', {
-            title: 'Question',
-            number: 1,
-            of: 4,
-            text: question.text,
-            answers: shuffle(question.answers)
-        });
+    const inventory = [
+        {
+            id: '000001',
+            text: 'How many things are there',
+            answers: [
+                '1',
+                '2',
+                '3',
+                '4'                
+            ],
+            author: 'fredBloggs',
+            date: new Date(),
+        }
+    ];
+
+    res.render('questionInventory', {
+        title: 'Inventory',
+        inventory: inventory
     });
 });
 
-router.post('/question/', (req, res, next) => {
+router.post('/questionInventory/', (req, res, next) => {
 });
 
 module.exports = router;

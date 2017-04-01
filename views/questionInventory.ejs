@@ -1,0 +1,38 @@
+<% layout('layout') -%>
+
+<script type="text/javascript" src="/javascripts/jquery.tablesorter.js"></script> 
+
+<h1 class='title'>Inventory</h1>
+
+<table id='inventory' class='tablesorter'>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Question</th>
+            <th>Answers</th>
+            <th>Author</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% inventory.forEach(function(question) { %>
+            <tr>
+                <td><%= question.id %></td>
+                <td><%= question.text %></td>
+                <td><%= question.answers[0] %></td>
+                <td><%= question.author %></td>
+                <td><%= question.date %></td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+
+<script>
+
+
+    $(document).ready(function() 
+        { 
+            $("#inventory").tablesorter(); 
+        } 
+    ); 
+</script>

@@ -7,6 +7,18 @@ a {
     color: #00B7FF;
 }
 
+.title {
+
+}
+
+.inventory, th, td {
+        margin: 20px;
+        padding: 20px;
+        width: 200px;
+        border: 1px solid lightblue;
+    }
+}
+
 .question-title {
 }
 

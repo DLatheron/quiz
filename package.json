@@ -13,12 +13,14 @@
     "ejs": "~2.5.5",
     "ejs-locals": "^1.0.2",
     "express": "~4.14.1",
+    "jquery": "^3.2.1",
     "js-logging": "^0.1.0",
     "mongodb": "^2.2.24",
     "morgan": "^1.8.1",
     "nconf": "^0.8.4",
     "serve-favicon": "~2.3.2",
     "shuffle-array": "^1.0.1",
+    "tablesorter": "^2.28.5",
     "yargs": "^7.0.2"
   }
 }

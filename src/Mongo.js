@@ -1,4 +1,4 @@
-﻿/* globals require, module */
+﻿/* globals module */
 'use strict';
 
 module.exports = (mongodb) => {

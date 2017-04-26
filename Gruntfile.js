@@ -1,4 +1,5 @@
 /* globals module */
+/* jshint -W106 */
 
 module.exports = function(grunt) {
     grunt.initConfig({

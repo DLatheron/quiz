@@ -15,6 +15,7 @@
     "express": "~4.14.1",
     "jquery": "^3.2.1",
     "js-logging": "^0.1.0",
+    "lodash": "^4.17.4",
     "mongodb": "^2.2.24",
     "morgan": "^1.8.1",
     "nconf": "^0.8.4",
@@ -30,6 +31,7 @@
     "grunt-mocha-cli": "^3.0.0",
     "grunt-shell": "^2.1.0",
     "mocha": "^3.2.0",
-    "nightwatch": "^0.9.14"
+    "nightwatch": "^0.9.14",
+    "should": "^11.2.1"
   }
 }

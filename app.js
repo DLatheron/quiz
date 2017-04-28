@@ -5,7 +5,7 @@ const path = require('path');
 //const favicon = require('serve-favicon');
 const engine = require('ejs-locals');
 const morgan = require('morgan');
-const logger = require('js-logging').console();
+//const logger = require('js-logging').console();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 

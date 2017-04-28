@@ -15,9 +15,10 @@ describe('#Question', () => {
             ]
         });
 
-        assert.equal(question.text, 'How are you today?');
-        assert.equal(question.correctAnswer(), 'Good thanks');
-        assert.deepEqual(question.wrongAnswers(), [
+        assert.strictEqual(question._id, undefined);
+        assert.strictEqual(question.text, 'How are you today?');
+        assert.strictEqual(question.correctAnswer(), 'Good thanks');
+        assert.deepStrictEqual(question.wrongAnswers(), [
             'Ok',
             'So-so'            
         ]);
@@ -33,9 +34,9 @@ describe('#Question', () => {
             ]
         });
 
-        assert.equal(question.text, 'How are you today?');
-        assert.equal(question.correctAnswer(), 'Good thanks');
-        assert.deepEqual(question.wrongAnswers(), [
+        assert.strictEqual(question.text, 'How are you today?');
+        assert.strictEqual(question.correctAnswer(), 'Good thanks');
+        assert.deepStrictEqual(question.wrongAnswers(), [
             'Ok',
             'So-so'            
         ]);        
@@ -55,13 +56,13 @@ describe('#Question', () => {
 
         describe('#correctAnswer', () => {
             it('should return the correct answer', () => {
-                assert.equal(question.correctAnswer(), 'Correct Answer');
+                assert.strictEqual(question.correctAnswer(), 'Correct Answer');
             });
         });
 
         describe('#wrongAnswers', () => {
             it('should return all answers except the correct one', () => {
-                assert.deepEqual(question.wrongAnswers(), [
+                assert.deepStrictEqual(question.wrongAnswers(), [
                     'Wrong Answer 1',
                     'Wrong Answer 2',
                     'Wrong Answer 3'
@@ -71,7 +72,7 @@ describe('#Question', () => {
 
         describe('#shuffledAnsers', () => {
             it('should return all the answers', () => {
-                assert.deepEqual(question.shuffledAnswers().sort(), answers.sort());
+                assert.deepStrictEqual(question.shuffledAnswers().sort(), answers.sort());
             });
         });
 
@@ -82,6 +83,19 @@ describe('#Question', () => {
 
             it('should return false if the answer is incorrect', () => {
                 assert(!question.isCorrectAnswer('Wrong Answer 1'));
+            });
+        });
+    });
+
+    describe('#convertToDBFormat', () => {
+        it('should return an object with only the fields required for database storage', () => {
+            const question = new Question({
+                text: 'How are you today?',
+                answers: [
+                    'Good thanks',
+                    'Ok',
+                    'So-so'
+                ]
             });
         });
     });

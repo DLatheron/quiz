@@ -4,6 +4,18 @@
 const _ = require('lodash');
 const shuffle = require('shuffle-array');
 
+// Current Mongo Format:
+// "_id":ObjectId("58c2fc5db2a241e48737a9b9"),
+// "text":"What is the capital of Sweden?",
+// "answers":[
+// 	"Stockholm",
+// 	"Berlin",
+// 	"Paris",
+// 	"Copenhagen",
+// 	"London",
+// 	"Cardiff"
+// ]
+
 class Question {
     constructor(options) {
         var properties = _.extend({
@@ -12,6 +24,7 @@ class Question {
             answers: []
         }, options);
 
+        this._id = options._id;
         this.text = properties.text;
         this.answers = _.compact(_.concat(properties.correctAnswer, properties.answers));
     }
@@ -31,17 +44,14 @@ class Question {
     isCorrectAnswer(answer) {
         return answer === this.correctAnswer();
     }
+
+    convertToDBFormat() {
+        return _.pick(this, [
+            '_id',
+            'text',
+            'answers'
+        ]);
+    }
 }
-
-// const questionFactory = function(questionState) {
-//     const defaultState = {
-//         text: '',
-//         answers: []
-//     };
-
-//     const question = Object.assign({}, defaultState, questionState);
-
-//     return question;
-// };
 
 module.exports = Question;

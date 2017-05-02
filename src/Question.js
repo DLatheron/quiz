@@ -52,6 +52,14 @@ class Question {
             'answers'
         ]);
     }
+
+    write(collection) {
+        if (typeof this._id === 'undefined') {
+            collection.insert({}, this.convertToDBFormat());
+        } else {
+            collection.update({}, this.convertToDBFormat());
+        }
+    }
 }
 
 module.exports = Question;

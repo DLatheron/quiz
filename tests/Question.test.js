@@ -1,8 +1,9 @@
-/* globals require, describe, it, context */
+/* globals require, describe, it, context, beforeEach */
 'use strict';
 
 const assert = require('assert');
 const Question = require('../src/Question');
+const sinon = require('sinon');
 
 describe('#Question', () => {
     it('should allow construction with an array of answers', () => {
@@ -89,7 +90,38 @@ describe('#Question', () => {
 
     describe('#convertToDBFormat', () => {
         it('should return an object with only the fields required for database storage', () => {
+            const text = 'How are you today?';
+            const answers = [
+                'Good thanks',
+                'Ok',
+                'So-so'
+            ];
             const question = new Question({
+                text: text,
+                answers: answers
+            });
+
+            const dbQuestion = question.convertToDBFormat();
+
+            assert.strictEqual(dbQuestion._id, undefined);
+            assert.strictEqual(dbQuestion.text, text);
+            assert.deepStrictEqual(dbQuestion.answers, answers);
+        });
+    });
+
+    describe('#write', () => {
+        let collection;
+        let collectionMock;
+        let question;
+
+        beforeEach(() => {
+            collection = {
+                insert: () => {},
+                update: () => {}
+            };
+            collectionMock = sinon.mock(collection);
+
+            question = new Question({
                 text: 'How are you today?',
                 answers: [
                     'Good thanks',
@@ -97,6 +129,35 @@ describe('#Question', () => {
                     'So-so'
                 ]
             });
+        });
+
+        it('should insert into the collection if not already added', () => {
+            collectionMock.expects('insert')
+                .once()
+                .withArgs(
+                    {},
+                    sinon.match(question.convertToDBFormat())
+                );
+            collectionMock.expects('update').never();
+
+            question.write(collection);
+
+            collectionMock.verify();
+        });
+
+        it('should update the collection if already added', () => {
+            question._id = 'AlreadyExistsInTheDatabase';
+            collectionMock.expects('insert').never();
+            collectionMock.expects('update')
+                .once()
+                .withArgs(
+                    {},
+                    sinon.match(question.convertToDBFormat())
+                );
+
+            question.write(collection);
+
+            collectionMock.verify();
         });
     });
 });

@@ -4,8 +4,11 @@ const router = express.Router();
 const shuffle = require('shuffle-array');
 
 router.get('/', (req, res) => {
-    req.db.getQuestion((error, question) => {
-        if (error) return;
+    req.db.getQuestion({}, (error, question) => {
+        if (error) {
+            return;
+        }
+
         res.render('question', {
             title: 'Question',
             number: 1,

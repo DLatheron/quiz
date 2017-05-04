@@ -2,8 +2,7 @@
 
 const nconf = require('nconf');
 const app = require('../app');
-const MongoClient = require('mongodb').MongoClient;
-const Mongo = require('../src/Mongo');
+const MongoDB = require('../src/MongoDB');
 const debug = require('debug')('quiz:server');
 const http = require('http');
 const argv = require('yargs').argv;
@@ -14,30 +13,28 @@ argv.secretConfig = argv.secretConfig || 'config/secret-config.json';
 nconf.argv().env().file({ file: argv.config });
 nconf.file('custom', argv.secretConfig);
 
-const mongoUri = nconf.get('MongoUri')
-    .replace('[USERNAME]', nconf.get('MongoUsername'))
-    .replace('[PASSWORD]', nconf.get('MongoPassword'))
-    .replace('[DATABASE]', nconf.get('MongoDatabase'));
-
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 const server = http.createServer(app);
+const mongoDB = new MongoDB(
+    nconf.get('MongoUri'),
+    nconf.get('MongoDatabase'),
+    nconf.get('MongoUsername'),
+    nconf.get('MongoPassword')
+);
 
-MongoClient.connect(mongoUri)
-    .then((db) => {
-        startListening(db);
-    })
-    .catch((error) => {
-        throw(error);
-    });   
+mongoDB.connect((error) => {
+    if (error) {
+        throw error;
+    }
 
+    startListening(mongoDB);
+});
 
-function startListening(db) {
-    const mongo = Mongo(db);
-
+function startListening(mongoDB) {
     app.use((req, res, next) => {
-        req.db = mongo;
+        req.db = mongoDB;
         next();
     });
 

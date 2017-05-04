@@ -4,17 +4,6 @@
 const _ = require('lodash');
 const shuffle = require('shuffle-array');
 
-// Current Mongo Format:
-// "_id":ObjectId("58c2fc5db2a241e48737a9b9"),
-// "text":"What is the capital of Sweden?",
-// "answers":[
-// 	"Stockholm",
-// 	"Berlin",
-// 	"Paris",
-// 	"Copenhagen",
-// 	"London",
-// 	"Cardiff"
-// ]
 
 class Question {
     constructor(options) {

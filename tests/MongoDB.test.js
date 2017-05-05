@@ -1,8 +1,8 @@
-/* globals require, describe, it, context, beforeEach, afterEach */
+/* globals require, describe, it, context, beforeEach */
 'use strict';
 
 const assert = require('assert');
-const MongoClient = require('mongodb').MongoClient;
+//const MongoClient = require('mongodb').MongoClient;
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 
@@ -17,17 +17,29 @@ describe('#MongoDB', () => {
     };
 
     let MongoDB;
-    // let MongoClient;
+    let mongoDB;
+    let MongoClient;
+    let fakeCollection;
+    let fakeDatabase;
 
     beforeEach(() => {
-        // MongoClient = {
-        //     connect: () => {},
-        //     disconnect: () => {}
-        // };
+        MongoClient = {
+            connect: () => { assert.fail(); }
+        };
 
         MongoDB = proxyquire('../src/MongoDB.js', {
-            MongoClient: MongoClient
+            mongodb: { MongoClient: MongoClient }
         });
+
+        fakeCollection = {
+            find: () => { assert.fail(); },
+            findOne: () => { assert.fail(); }
+        };
+
+        fakeDatabase = {
+            collection: () => { return fakeCollection; },
+            close: () => { assert.fail(); }
+        };        
     });
 
     describe('#constructor', () => {
@@ -44,9 +56,6 @@ describe('#MongoDB', () => {
     });
 
     context('', () => {
-        let mongoDB;
-        let fakeDatabase;
-
         beforeEach(() => {
             mongoDB = new MongoDB(
                 url,
@@ -54,15 +63,6 @@ describe('#MongoDB', () => {
                 username,
                 password
             );
-
-            fakeDatabase = {
-                collection: () => {},
-                close: () => {}
-            };
-        });
-
-        afterEach(() => {
-            MongoClient.connect.restore();
         });
 
         describe('#connect', () => {
@@ -112,7 +112,7 @@ describe('#MongoDB', () => {
                     .once();
             });
 
-            it('should callback with an error is disconnection fails', (done) => {
+            it('should callback with an error if disconnection fails', (done) => {
                 closeMock.yields(expectedError);
 
                 mongoDB.connect(() => {
@@ -124,7 +124,7 @@ describe('#MongoDB', () => {
                 });                
             });
 
-            it('should callback if disconnection succeedsf', (done) => {
+            it('should callback if disconnection succeeds', (done) => {
                 closeMock.yields();
 
                 mongoDB.connect(() => {
@@ -138,20 +138,151 @@ describe('#MongoDB', () => {
         });
 
         describe('#isConnected', () => {
-            it('should return false before connect is called');
-            it('should return true after connect completes successfully');
-            it('should return false if connect fails');
-            it('should return false after disconnect is called');
+            it('should return false before connect is called', () => {
+                assert(!mongoDB.isConnected());
+            });
+
+            it('should return true after connect completes successfully', (done) => {
+                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+
+                mongoDB.connect(() => {
+                    assert(mongoDB.isConnected());
+                    done();
+                });
+            });
+
+            it('should return false if connect fails', (done) => {
+                sinon.stub(MongoClient, 'connect').yields(expectedError);
+
+                mongoDB.connect(() => {
+                    assert(!mongoDB.isConnected());
+                    done();
+                });
+            });
+
+            it('should return false after disconnect is called', (done) => {
+                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+                sinon.stub(fakeDatabase, 'close').yields();
+
+                mongoDB.connect(() => {
+                    mongoDB.disconnect(() => {
+                        assert(!mongoDB.isConnected());
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
+    context('', () => {
+        beforeEach(() => {
+            sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+            sinon.stub(fakeDatabase, 'collection').returns(fakeCollection);
+
+            mongoDB = new MongoDB(
+                url,
+                database,
+                username,
+                password
+            );                
         });
 
         describe('#getQuestion', () => {
-            it('should callback with an error if an error occurs');
-            it('should callback with the a question if a question is found');
+            const expectedQuestion = {
+                text: 'How are you?',
+                answers: [
+                    'Good',
+                    'Bad'
+                ]
+            };
+
+            beforeEach(() => {
+                sinon.stub(fakeCollection, 'findOne')
+                    .withArgs('an error occurred').yields(expectedError)
+                    .withArgs('no question found').yields(null, null)
+                    .withArgs('one question').yields(null, expectedQuestion);
+            });
+
+            it('should callback with an error if an error occurs', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestion('an error occurred', (error) => {
+                        assert.strictEqual(error, expectedError);
+                        done();
+                    });
+                });
+            });
+
+            it('should callback with null if no question was found', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestion('no question found', (error, question) => {
+                        assert(!error);
+                        assert.equal(question, null);
+                        done();
+                    });
+                });
+            });
+
+            it('should callback with the a question if a question is found', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestion('one question', (error, question) => {
+                        assert(!error);
+                        assert.strictEqual(question, expectedQuestion);
+                        done();
+                    });
+                });
+            });
         });
 
         describe('#getQuestions', () => {
-            it('should callback with an error if an error occurs');
-            it('should callback with an array of questions if any are found');
+            const expectedQuestions = [{
+                text: 'How are you?',
+                answers: [
+                    'Good',
+                    'Bad'
+                ]
+            },{
+                text: 'What happened?',
+                answers: [
+                    'Something',
+                    'Nothing'
+                ]
+            }];
+                        
+            beforeEach(() => {
+                sinon.stub(fakeCollection, 'find')
+                    .withArgs('an error occurred').yields(expectedError)
+                    .withArgs('no questions found').yields(null, null)
+                    .withArgs('questions found').yields(null, expectedQuestions);
+            });
+
+            it('should callback with an error if an error occurs', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestions('an error occurred', (error) => {
+                        assert.strictEqual(error, expectedError);
+                        done();
+                    });
+                });
+            });
+
+            it('should callback with null if no question were found', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestions('no questions found', (error, questions) => {
+                        assert(!error);
+                        assert.equal(questions, null);
+                        done();
+                    });
+                });
+            });
+
+            it('should callback with an array of questions if any where found', (done) => {
+                mongoDB.connect(() => {
+                    mongoDB.getQuestions('questions found', (error, questions) => {
+                        assert(!error);
+                        assert.deepStrictEqual(questions, expectedQuestions);
+                        done();
+                    });
+                });
+            });
         });
     });
 });

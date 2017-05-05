@@ -1,4 +1,4 @@
-/* globals console,require,module,__dirname */
+/* globals require,module,__dirname */
 'use strict';
 const express = require('express');
 const path = require('path');

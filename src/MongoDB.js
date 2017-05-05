@@ -7,9 +7,9 @@ const MongoClient = require('mongodb').MongoClient;
 class MongoDB {
     constructor(url, database, username, password) {
         this.url = url
+            .replace('[DATABASE]', database)
             .replace('[USERNAME]', username)
-            .replace('[PASSWORD]', password)
-            .replace('[DATABASE]', database);
+            .replace('[PASSWORD]', password);
         this.options = {};
         this.database = null;
     }
@@ -31,9 +31,13 @@ class MongoDB {
         );
     }
 
-    disconnect() {
-        MongoClient.disconnect();
-        this.database = null;
+    disconnect(callback) {
+        if (this.database) {
+            this.database.close((error) => {
+                this.database = null;
+                callback(error);
+            });
+        }
     }
 
     isConnected() {

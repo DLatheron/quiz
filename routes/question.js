@@ -1,4 +1,4 @@
-﻿/* globals mongo,module,require */
+﻿/* globals module, require */
 const express = require('express');
 const router = express.Router();
 const shuffle = require('shuffle-array');

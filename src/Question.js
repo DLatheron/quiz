@@ -1,13 +1,13 @@
 ﻿/* globals module, require */
 'use strict';
 
-const _ = require('lodash');
 const shuffle = require('shuffle-array');
+const _ = require('lodash');
 
 
 class Question {
     constructor(options) {
-        var properties = _.extend({
+        const properties = _.extend({
             text: '',
             correctAnswer: undefined,
             answers: []

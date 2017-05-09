@@ -5,23 +5,34 @@
 <h1 class='title'>Inventory</h1>
 
 <table id='inventory' class='tablesorter'>
-    <thead>
+    <thead class='headers'>
         <tr>
-            <th>ID</th>
-            <th>Question</th>
-            <th>Answers</th>
-            <th>Author</th>
-            <th>Date</th>
+            <th class='id'>ID</th>
+            <th class='text'>Question</th>
+            <th class='correctAnswer'>Correct Answer</th>
+            <th class='wrongAnswers'>Wrong Answer(s)</th>
+            <th class='author'>Author</th>
+            <th class='date'>Date</th>
         </tr>
     </thead>
-    <tbody>
-        <% inventory.forEach(function(question) { %>
+    <tbody class='body'>
+        <% inventory.forEach(function(question) { 
+            const wrongAnswers = question.answers.slice(1).join('<br/>');
+            %>
             <tr>
-                <td><%= question.id %></td>
-                <td><%= question.text %></td>
-                <td><%= question.answers[0] %></td>
-                <td><%= question.author %></td>
-                <td><%= question.date %></td>
+                <td class='id'><%= question._id %></td>
+                <td class='text'><%= question.text %></td>
+                <td class='correctAnswer'><%= question.answers[0] %></td>
+                <td class='wrongAnswers'>
+                    <ul>
+                        <% question.answers.slice(1).forEach(function(answer) {
+                            %>
+                            <li class='wrongAnswer'><%= answer %></li>
+                        <% }) %>
+                    </ul>
+                </td>
+                <td class='author'><%= (question.author) ? question.author : '-' %></td>
+                <td class='date'><%= (question.date) ? question.date : '-' %></td>
             </tr>
         <% }) %>
     </tbody>

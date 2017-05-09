@@ -247,15 +247,21 @@ describe('#MongoDB', () => {
                     'Nothing'
                 ]
             }];
+            let arrayStub;
                         
             beforeEach(() => {
+                arrayStub = {
+                    toArray: () => {}
+                };
+
                 sinon.stub(fakeCollection, 'find')
-                    .withArgs('an error occurred').yields(expectedError)
-                    .withArgs('no questions found').yields(null, null)
-                    .withArgs('questions found').yields(null, expectedQuestions);
+                    .returns(arrayStub);
             });
 
             it('should callback with an error if an error occurs', (done) => {
+                sinon.stub(arrayStub, 'toArray')
+                    .yields(expectedError);
+                
                 mongoDB.connect(() => {
                     mongoDB.getQuestions('an error occurred', (error) => {
                         assert.strictEqual(error, expectedError);
@@ -265,6 +271,9 @@ describe('#MongoDB', () => {
             });
 
             it('should callback with null if no question were found', (done) => {
+                sinon.stub(arrayStub, 'toArray')
+                    .yields(null, null);
+                
                 mongoDB.connect(() => {
                     mongoDB.getQuestions('no questions found', (error, questions) => {
                         assert(!error);
@@ -275,6 +284,9 @@ describe('#MongoDB', () => {
             });
 
             it('should callback with an array of questions if any where found', (done) => {
+                sinon.stub(arrayStub, 'toArray')
+                    .yields(null, expectedQuestions);
+                
                 mongoDB.connect(() => {
                     mongoDB.getQuestions('questions found', (error, questions) => {
                         assert(!error);

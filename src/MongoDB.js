@@ -60,7 +60,7 @@ class MongoDB {
         // an efficient way to retrieve things.
         // We really want to get the n-th to n-th + qty questions based on
         // a particular search query
-        this.questionCollection.find(searchCriteria, (error, questions) => {
+        this.questionCollection.find(searchCriteria).toArray((error, questions) => {
             if (error) {
                 return callback(error);
             }

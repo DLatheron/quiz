@@ -5,8 +5,8 @@ const router = express.Router();
 router.get('/', (req, res) => {
     req.db.getQuestions(
         {
-            orderBy: 'text',
-            limit: 10
+            // orderBy: 'text',
+            // limit: 10
         }, 
         (error, questions) => {
             res.render('questionInventory', {

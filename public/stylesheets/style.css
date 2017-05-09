@@ -8,15 +8,35 @@ a {
 }
 
 .title {
-
 }
 
-.inventory, th, td {
-        margin: 20px;
-        padding: 20px;
-        width: 200px;
-        border: 1px solid lightblue;
-    }
+#inventory, th, td {
+    padding: 0px 8px 0px 8px !important;
+    width: auto;
+    border: 1px solid black;
+}
+
+#inventory .headers {
+    text-align: center;
+    background-color: black;
+    color: white;
+}
+
+#inventory .body .id {
+    text-align: center;
+}
+
+#inventory .body .author {
+    text-align: center;
+}
+
+#inventory .body .date {
+    text-align: center;
+}
+
+#inventory .body .wrongAnswers ul {
+    margin-bottom: 0 !important;
+    padding-left: 20px;
 }
 
 .question-title {

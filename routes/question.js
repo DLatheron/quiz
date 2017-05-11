@@ -1,7 +1,10 @@
 ﻿/* globals module, require */
+'use strict';
+
 const express = require('express');
 const router = express.Router();
 const shuffle = require('shuffle-array');
+
 
 router.get('/', (req, res) => {
     req.db.getQuestion({}, (error, question) => {
@@ -21,5 +24,6 @@ router.get('/', (req, res) => {
 
 router.post('/question/', (req, res, next) => {
 });
+
 
 module.exports = router;

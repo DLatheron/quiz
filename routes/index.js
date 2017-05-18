@@ -5,9 +5,19 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-// GET loging page.
+const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
+
+// GET login page.
 router.get('/', (req, res) => {
-    res.render('index', { message: req.flash('message') });
+    res.render('login', { 
+        title: 'Home',
+        message: req.flash('message') 
+    });
 });
 
 // Handle login POST.
@@ -17,9 +27,17 @@ router.post('/login', passport.authenticate('login', {
     failureFlash: true
 }));
 
+router.get('/signout', (req, res) => {
+    req.logout();
+    res.redirect('/');
+});
+
 // GET registration page.
 router.get('/signup', (req, res) => {
-    res.render('register', { message: req.flash('message') });
+    res.render('register', { 
+        title: 'Register',
+        message: req.flash('message') 
+    });
 });
 
 // Handle registration POST.
@@ -29,10 +47,13 @@ router.post('/signup', passport.authenticate('signup', {
     failureFlash: true
 }));
 
-/* GET home page. */
-// router.get('/', function(req, res) {
-//     res.render('index', { title: 'Quiz' });
-// });
+// GET home page.
+router.get('/home', isAuthenticated, function(req, res) {
+    res.render('index', { 
+        title: 'Quiz',
+        user: req.user 
+    });
+});
 
 
 module.exports = router;

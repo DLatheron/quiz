@@ -7,10 +7,11 @@ const debug = require('debug')('quiz:server');
 const http = require('http');
 const argv = require('yargs').argv;
 const passport = require('passport');
-const expressSession = require('express=session');
-const { LocalStrategy } = require('passport-local');
+const expressSession = require('express-session');
+const LocalStrategy = require('passport-local');
 const bCrypt = require('bcrypt');
-const User = require('User');
+const User = require('../src/User');
+const flash = require('req-flash');
 
 
 argv.config = argv.config || 'config/config.json';
@@ -25,6 +26,9 @@ const sessionSecret = nconf.get('ExpressSessionSecret') || 'mySecretKey';
 app.use(expressSession({secret: sessionSecret}));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// flash - no not that flash
+app.use(flash());
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);

@@ -71,7 +71,7 @@ class MongoDB {
     }
 
     getUser(searchCriteria, callback) {
-        this.usersCollection.findOne(searchCriteria, (error, user) => {
+        this.database.collection('users').findOne(searchCriteria, (error, user) => {
             if (error) {
                 return callback(error);
             }

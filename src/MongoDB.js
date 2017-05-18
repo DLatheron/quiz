@@ -25,6 +25,7 @@ class MongoDB {
 
                 this.database = database;
                 this.questionCollection = database.collection('questions');
+                this.userCollection = database.collection('users');
 
                 callback(null, database);
             }
@@ -66,6 +67,16 @@ class MongoDB {
             }
 
             callback(null, questions);
+        });        
+    }
+
+    getUser(searchCriteria, callback) {
+        this.usersCollection.findOne(searchCriteria, (error, user) => {
+            if (error) {
+                return callback(error);
+            }
+
+            callback(null, user);
         });        
     }
 }

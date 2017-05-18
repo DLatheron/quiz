@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
         }, 
         (error, questions) => {
             res.render('questionInventory', {
-                title: 'Inventory',
+                title: 'Question Inventory',
                 inventory: questions
         });
     });

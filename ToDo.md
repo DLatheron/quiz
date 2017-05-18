@@ -19,7 +19,7 @@ Passport
 
 Question Creation
 - ID assignment (not BSONID);
-- Author;
+- Author - should be the BSONID of the customer NOT their e-mail address;
 - Date created;
 - Public/private flag;
 - Save/Cancel buttons;

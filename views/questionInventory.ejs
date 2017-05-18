@@ -2,7 +2,7 @@
 
 <script type="text/javascript" src="/javascripts/jquery.tablesorter.js"></script> 
 
-<h1 class='title'>Inventory</h1>
+<h1 class='title'>Question Inventory</h1>
 
 <table id='inventory' class='tablesorter'>
     <thead class='headers'>
@@ -20,7 +20,7 @@
             const wrongAnswers = question.answers.slice(1).join('<br/>');
             %>
             <tr>
-                <td class='id'><%= question._id %></td>
+                <td class='id'><%= question.id %></td>
                 <td class='text'><%= question.text %></td>
                 <td class='correctAnswer'><%= question.answers[0] %></td>
                 <td class='wrongAnswers'>

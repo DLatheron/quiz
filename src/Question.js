@@ -14,6 +14,7 @@ class Question {
         }, options);
 
         this._id = options._id;
+        this.id = options.id;
         this.text = properties.text;
         this.answers = _.compact(_.concat(properties.correctAnswer, properties.answers));
     }
@@ -37,6 +38,7 @@ class Question {
     convertToDBFormat() {
         return _.pick(this, [
             '_id',
+            'id',
             'text',
             'answers'
         ]);

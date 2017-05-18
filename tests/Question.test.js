@@ -8,6 +8,7 @@ const sinon = require('sinon');
 describe('#Question', () => {
     it('should allow construction with an array of answers', () => {
         const question = new Question({
+            id: 'Q0001',
             text: 'How are you today?',
             answers: [
                 'Good thanks',
@@ -17,6 +18,7 @@ describe('#Question', () => {
         });
 
         assert.strictEqual(question._id, undefined);
+        assert.strictEqual(question.id, 'Q0001');
         assert.strictEqual(question.text, 'How are you today?');
         assert.strictEqual(question.correctAnswer(), 'Good thanks');
         assert.deepStrictEqual(question.wrongAnswers(), [
@@ -27,6 +29,7 @@ describe('#Question', () => {
     
     it('should allow construction with a correct answer and an array of wrong answers', () => {
         const question = new Question({
+            id: 'Q0001',
             text: 'How are you today?',
             correctAnswer: 'Good thanks',
             answers: [
@@ -35,6 +38,8 @@ describe('#Question', () => {
             ]
         });
 
+        assert.strictEqual(question._id, undefined);
+        assert.strictEqual(question.id, 'Q0001');
         assert.strictEqual(question.text, 'How are you today?');
         assert.strictEqual(question.correctAnswer(), 'Good thanks');
         assert.deepStrictEqual(question.wrongAnswers(), [

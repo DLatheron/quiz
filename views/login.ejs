@@ -9,12 +9,12 @@
                     class='profile-img'
                     src='https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120' />
                 <form class='form-signin', action='/login', method='POST'>
-                    <input type='text' name='username' class='form-control' placeholder='Email' required='true' autofocus='true' />
+                    <input type='text' name='username' class='form-control' placeholder='Email Address' required='true' autofocus='true' />
                     <input type='password' name='password' class='form-control' placeholder='Password' required='true' />
-                    <button class='btn btn-lg btn-primary btn-block' type='submit'>Sign in</button>
+                    <button class='btn btn-lg btn-primary btn-block' type='submit'>Login</button>
                     <span class='clearfix' />
                 </form>
-                <a href='/signup' class='text-center new-account'>Create an account</a>
+                <a href='/signup' class='text-center new-account'>Not already a member? Create a free account!</a>
                 <% if (message) { %>
                     <h1 class='text-center error-message'><%=message %></h1>
                 <% } %>

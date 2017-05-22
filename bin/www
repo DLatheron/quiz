@@ -12,7 +12,7 @@ const LocalStrategy = require('passport-local');
 const bCrypt = require('bcrypt');
 const User = require('../src/User');
 const flash = require('req-flash');
-
+const { ObjectId } = require('mongodb');
 
 argv.config = argv.config || 'config/config.json';
 argv.secretConfig = argv.secretConfig || 'config/secret-config.json';
@@ -55,7 +55,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((id, done) => {
     mongoDB.getUser(
-        { _id: id }, 
+        { _id: ObjectId(id) }, 
         (error, user) => {
             done(error, user);
     });
@@ -67,7 +67,7 @@ passport.use('login',
     },
     (req, username, password, done) => {
         mongoDB.getUser(
-            { username: username },
+            { email: username },
             (error, user) => {
                 if (error) {
                     return done(error);
@@ -77,22 +77,40 @@ passport.use('login',
                     console.error(`Username '${username}' not found`);
                     return done(null, false, req.flash('message', 'User not found'));
                 }
-                if (!isValidPassword(user, password)) {
-                    console.error('Invalid password');
-                    return done(null, false, req.flash('message', 'Invalid password'));
-                }
-                return done(null, user);
+
+                vallidatePassword(user, password, (error, isValid) => {
+                    if (error) {
+                        return done(error);
+                    }
+
+                    if (!isValid) {
+                        console.error('Invalid password');
+                        return done(null, false, req.flash('message', 'Invalid password'));
+                    }
+
+                    return done(null, user);
+                });
             }
         );
     })
 );
 
-function isValidPassword(user, password) {
-    return bCrypt.compareSync(password, user.password);
+function vallidatePassword(user, password, callback) {
+    bCrypt.compare(
+        password, 
+        user.passwordHash, 
+        callback
+    );
 }
 
-function createHash(password) {
-    return bCrypt.hashSync(password, bCrypt.getSaltSync(10), null);
+function createHash(password, callback) {
+    const numberOfSaltRounds = 10;
+
+    return bCrypt.hash(
+        password, 
+        numberOfSaltRounds, 
+        callback
+    );
 }
 
 passport.use('signup', 
@@ -112,19 +130,22 @@ passport.use('signup',
                         console.error(`User '${username}' already exists`);
                         return done(null, false, req.flash('message', 'User already exists'));
                     } else {
-                        const newUser = new User({
-                            username: username,
-                            passwordHash: createHash(password),
-                            email: req.param('email'),
-                            firstName: req.param('firstName'),
-                            lastName: req.param('lastName')
-                        });
-
-                        mongoDB.storeUser(newUser, (error) => {
+                        createHash(password, (error, hash) => {
                             if (error) {
                                 return done(error);
                             }
-                            done(null, newUser);
+
+                            const newUser = new User({
+                                email: username,
+                                passwordHash: hash
+                            });
+
+                            mongoDB.storeUser(newUser, (error) => {
+                                if (error) {
+                                    return done(error);
+                                }
+                                done(null, newUser);
+                            });
                         });
                     }
                 }

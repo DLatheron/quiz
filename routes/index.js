@@ -51,8 +51,7 @@ router.post('/signup', passport.authenticate('signup', {
 router.get('/home', isAuthenticated, function(req, res) {
     res.render('index', { 
         title: 'Quiz',
-        user: req.user 
-    });
+        user: req.user });
 });
 
 

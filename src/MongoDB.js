@@ -79,6 +79,10 @@ class MongoDB {
             callback(null, user);
         });        
     }
+
+    storeUser(user, callback) {
+        this.database.collection('users').insert(user, callback);
+    }
 }
 
 

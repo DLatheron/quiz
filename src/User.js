@@ -3,9 +3,8 @@
 
 class User {
     constructor(values) {
-        this.username = values.username;
-        this.password = values.password;
         this.email = values.email;
+        this.passwordHash = values.passwordHash;
         this.firstName = values.firstName || '';
         this.lastName = values.lastName || '';
     }

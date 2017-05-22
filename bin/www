@@ -13,17 +13,33 @@ const bCrypt = require('bcrypt');
 const User = require('../src/User');
 const flash = require('req-flash');
 const { ObjectId } = require('mongodb');
+const MongoStore = require('connect-mongo')(expressSession);
 
 argv.config = argv.config || 'config/config.json';
 argv.secretConfig = argv.secretConfig || 'config/secret-config.json';
 
 nconf.argv().env().file({ file: argv.config });
 nconf.file('custom', argv.secretConfig);
+const mongoDB = new MongoDB(
+    nconf.get('MongoUri'),
+    nconf.get('MongoDatabase'),
+    nconf.get('MongoUsername'),
+    nconf.get('MongoPassword')
+);
+
 
 
 // passport
 const sessionSecret = nconf.get('ExpressSessionSecret') || 'mySecretKey';
-app.use(expressSession({secret: sessionSecret}));
+app.use(expressSession({
+    secret: sessionSecret,
+    cookie: { maxAge: 2628000000 },
+    store: new MongoStore({
+        url: mongoDB.url,
+        collection: 'sessions',
+        expire: 24 * 60 * 60 // = 1 day.
+    })
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -34,12 +50,6 @@ const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 const server = http.createServer(app);
-const mongoDB = new MongoDB(
-    nconf.get('MongoUri'),
-    nconf.get('MongoDatabase'),
-    nconf.get('MongoUsername'),
-    nconf.get('MongoPassword')
-);
 
 mongoDB.connect((error) => {
     if (error) {

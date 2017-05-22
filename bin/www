@@ -6,14 +6,8 @@ const MongoDB = require('../src/MongoDB');
 const debug = require('debug')('quiz:server');
 const http = require('http');
 const argv = require('yargs').argv;
-const passport = require('passport');
-const expressSession = require('express-session');
-const LocalStrategy = require('passport-local');
-const bCrypt = require('bcrypt');
-const User = require('../src/User');
 const flash = require('req-flash');
-const { ObjectId } = require('mongodb');
-const MongoStore = require('connect-mongo')(expressSession);
+const authentication = require('../src/authentication');
 
 argv.config = argv.config || 'config/config.json';
 argv.secretConfig = argv.secretConfig || 'config/secret-config.json';
@@ -27,21 +21,10 @@ const mongoDB = new MongoDB(
     nconf.get('MongoPassword')
 );
 
-
-
-// passport
-const sessionSecret = nconf.get('ExpressSessionSecret') || 'mySecretKey';
-app.use(expressSession({
-    secret: sessionSecret,
-    cookie: { maxAge: 2628000000 },
-    store: new MongoStore({
-        url: mongoDB.url,
-        collection: 'sessions',
-        expire: 24 * 60 * 60 // = 1 day.
-    })
-}));
-app.use(passport.initialize());
-app.use(passport.session());
+authentication(
+    mongoDB,
+    nconf.get('ExpressSessionSecret')
+);
 
 // flash - no not that flash
 app.use(flash());
@@ -58,113 +41,6 @@ mongoDB.connect((error) => {
 
     startListening(mongoDB);
 });
-
-passport.serializeUser((user, done) => {
-    done(null, user._id);
-});
-
-passport.deserializeUser((id, done) => {
-    mongoDB.getUser(
-        { _id: ObjectId(id) }, 
-        (error, user) => {
-            done(error, user);
-    });
-});
-
-passport.use('login', 
-    new LocalStrategy({
-        passReqToCallback: true
-    },
-    (req, username, password, done) => {
-        mongoDB.getUser(
-            { email: username },
-            (error, user) => {
-                if (error) {
-                    return done(error);
-                }
-
-                if (!user) {
-                    console.error(`Username '${username}' not found`);
-                    return done(null, false, req.flash('message', 'User not found'));
-                }
-
-                vallidatePassword(user, password, (error, isValid) => {
-                    if (error) {
-                        return done(error);
-                    }
-
-                    if (!isValid) {
-                        console.error('Invalid password');
-                        return done(null, false, req.flash('message', 'Invalid password'));
-                    }
-
-                    return done(null, user);
-                });
-            }
-        );
-    })
-);
-
-function vallidatePassword(user, password, callback) {
-    bCrypt.compare(
-        password, 
-        user.passwordHash, 
-        callback
-    );
-}
-
-function createHash(password, callback) {
-    const numberOfSaltRounds = 10;
-
-    return bCrypt.hash(
-        password, 
-        numberOfSaltRounds, 
-        callback
-    );
-}
-
-passport.use('signup', 
-    new LocalStrategy({
-        passReqToCallback: true
-    },
-    (req, username, password, done) => {
-        const findOrCreateUser = () => {
-            mongoDB.getUser(
-                { username: username },
-                (error, user) => {
-                    if (error) {
-                        console.error(`Error during signup: ${error}`);
-                        return done(error);
-                    }
-                    if (user) {
-                        console.error(`User '${username}' already exists`);
-                        return done(null, false, req.flash('message', 'User already exists'));
-                    } else {
-                        createHash(password, (error, hash) => {
-                            if (error) {
-                                return done(error);
-                            }
-
-                            const newUser = new User({
-                                email: username,
-                                passwordHash: hash
-                            });
-
-                            mongoDB.storeUser(newUser, (error) => {
-                                if (error) {
-                                    return done(error);
-                                }
-                                done(null, newUser);
-                            });
-                        });
-                    }
-                }
-            );
-        };
-
-        process.nextTick(findOrCreateUser);
-    })
-);
 
 function startListening(mongoDB) {
     app.use((req, res, next) => {

@@ -1,75 +1,20 @@
 #!/usr/bin/env node
+/* globals require */
+'use strict';
 
-const nconf = require('nconf');
 const app = require('../app');
-const MongoDB = require('../src/MongoDB');
 const debug = require('debug')('quiz:server');
 const http = require('http');
-const argv = require('yargs').argv;
-const flash = require('req-flash');
-const authentication = require('../src/authentication');
-
-argv.config = argv.config || 'config/config.json';
-argv.secretConfig = argv.secretConfig || 'config/secret-config.json';
-
-nconf.argv().env().file({ file: argv.config });
-nconf.file('custom', argv.secretConfig);
-const mongoDB = new MongoDB(
-    nconf.get('MongoUri'),
-    nconf.get('MongoDatabase'),
-    nconf.get('MongoUsername'),
-    nconf.get('MongoPassword')
-);
-
-authentication(
-    mongoDB,
-    nconf.get('ExpressSessionSecret')
-);
-
-// flash - no not that flash
-app.use(flash());
-
-const port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
 
 const server = http.createServer(app);
+const port = normalizePort(process.env.PORT || '3000');
 
-mongoDB.connect((error) => {
-    if (error) {
-        throw error;
-    }
-
-    startListening(mongoDB);
-});
-
-function startListening(mongoDB) {
-    app.use((req, res, next) => {
-        req.db = mongoDB;
-        next();
-    });
-
-    app.setRouting();
-    app.setErrorHandling();
-
+app.set('port', port);
+app.start(() => {
     server.listen(port);
     server.on('error', onError);
     server.on('listening', onListening);
-}
-
-function normalizePort(val) {
-    const port = parseInt(val, 10);
-
-    if (isNaN(port)) {
-      // named pipe
-      return val;
-    }
-
-    if (port >= 0) {
-      return port;
-    }
-
-    return false;
-}
+});
 
 function onError(error) {
     if (error.syscall !== 'listen') {
@@ -97,11 +42,23 @@ function onError(error) {
     }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
 function onListening() {
     const addr = server.address();
     const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
     debug('Listening on ' + bind);
+}
+
+function normalizePort(val) {
+    const port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+      // named pipe
+      return val;
+    }
+
+    if (port >= 0) {
+      return port;
+    }
+
+    return false;
 }

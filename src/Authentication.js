@@ -1,22 +1,13 @@
 /* globals require, module */
 
-const app = require('../app');
 const passport = require('passport');
-const expressSession = require('express-session');
 const LocalStrategy = require('passport-local');
 const bCrypt = require('bcrypt');
 const User = require('../src/User');
 const { ObjectId } = require('mongodb');
-const MongoStore = require('connect-mongo')(expressSession);
 
-function authentication(
-    mongoDB, 
-    sessionSecret = 'mySecretKey'
-) {
+function authentication(mongoDB) {
     const numberOfSaltRounds = 10;
-    const maxCookieAge = 2628000000;    // TODO: Check this.
-    const sessionExpirationTime = 24 * 60 * 60; // = 1 day
-    const sessionCollection = 'sessions';
 
     function validatePassword(user, password, callback) {
         bCrypt.compare(password, user.passwordHash, callback);
@@ -26,17 +17,6 @@ function authentication(
         bCrypt.hash(password, numberOfSaltRounds, callback);
     }    
 
-    app.use(expressSession({
-        secret: sessionSecret,
-        cookie: { maxAge: maxCookieAge },
-        store: new MongoStore({
-            url: mongoDB.url,
-            collection: sessionCollection,
-            expire: sessionExpirationTime
-        })
-    }));
-    app.use(passport.initialize());
-    app.use(passport.session());
 
     passport.serializeUser((user, done) => {
         done(null, user._id);
@@ -48,7 +28,7 @@ function authentication(
                 done(error, user);
         });
     });
-    passport.use('login', 
+    passport.use('localLogin', 
         new LocalStrategy({
             passReqToCallback: true
         },
@@ -81,7 +61,7 @@ function authentication(
             );
         })
     );
-    passport.use('signup', 
+    passport.use('register', 
         new LocalStrategy({
             passReqToCallback: true
         },
@@ -91,7 +71,7 @@ function authentication(
                     { username: username },
                     (error, user) => {
                         if (error) {
-                            console.error(`Error during signup: ${error}`);
+                            console.error(`Error during registration: ${error}`);
                             return done(error);
                         }
                         if (user) {

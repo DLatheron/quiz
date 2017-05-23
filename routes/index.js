@@ -14,6 +14,10 @@ const isAuthenticated = (req, res, next) => {
 
 // GET login page.
 router.get('/', (req, res) => {
+    if (req.user) {
+        return res.redirect('/home');
+    }
+    
     res.render('login', { 
         title: 'Home',
         message: req.flash('message') 
@@ -27,13 +31,13 @@ router.post('/login', passport.authenticate('localLogin', {
     failureFlash: true
 }));
 
-router.get('/signout', (req, res) => {
+router.get('/logout', (req, res) => {
     req.logout();
     res.redirect('/');
 });
 
 // GET registration page.
-router.get('/signup', (req, res) => {
+router.get('/register', (req, res) => {
     res.render('register', { 
         title: 'Register',
         message: req.flash('message') 
@@ -41,9 +45,9 @@ router.get('/signup', (req, res) => {
 });
 
 // Handle registration POST.
-router.post('/signup', passport.authenticate('signup', {
+router.post('/register', passport.authenticate('register', {
     successRedirect: '/home',
-    failureRedirect: '/signup',
+    failureRedirect: '/register',
     failureFlash: true
 }));
 

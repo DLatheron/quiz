@@ -40,3 +40,5 @@ obj
 #VS code
 .vs
 .vscode
+
+.DS_Store

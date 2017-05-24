@@ -47,11 +47,13 @@ class MongoDB {
 
     getQuestion(searchCriteria, callback) {
         this.questionCollection.findOne(searchCriteria, (error, question) => {
-            if (error) {
-                return callback(error);
-            }
+            callback(error, question);
+        });
+    }
 
-            callback(null, question);
+    addQuestion(question, callback) {
+        this.questionCollection.insert(question, (error, result) => {
+            callback(error, result);
         });
     }
 

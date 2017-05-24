@@ -13,6 +13,7 @@ const index = require('./routes/index');
 const users = require('./routes/users');
 const question = require('./routes/question');
 const questionInventory = require('./routes/questionInventory');
+const game = require('./routes/game');
 const { argv } = require('yargs');
 const nconf = require('nconf');
 const authentication = require('./src/Authentication');
@@ -60,6 +61,7 @@ app.setRouting = function() {
     app.use('/users', users);
     app.use('/question', question);
     app.use('/questionInventory', questionInventory);
+    app.use('/game', game);
 };
 app.setErrorHandling = function() {
     // catch 404 and forward to error handler

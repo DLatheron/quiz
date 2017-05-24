@@ -40,7 +40,9 @@ class Question {
             '_id',
             'id',
             'text',
-            'answers'
+            'answers',
+            'author',
+            'date'
         ]);
     }
 

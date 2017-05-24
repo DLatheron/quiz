@@ -1,6 +1,9 @@
 <% layout('layout') -%>
 
-<script type="text/javascript" src="/javascripts/jquery.tablesorter.js"></script> 
+<link rel="stylesheet" href="/stylesheets/theme.default.css">
+<script src="/javascripts/jquery.tablesorter.js"></script> 
+<script src="/javascripts/jquery.tablesorter.widgets.js"></script> 
+
 
 <h1 class='title'>Question Inventory</h1>
 
@@ -32,7 +35,7 @@
                     </ul>
                 </td>
                 <td class='author'><%= (question.author) ? question.author : '-' %></td>
-                <td class='date'><%= (question.date) ? moment(question.date).format('h:mma, D MMM YYYY z') : '-' %></td>
+                <td class='date'><%= (question.date) ? moment(question.date).format(timeFormat) : '-' %></td>
             </tr>
         <% }) %>
     </tbody>

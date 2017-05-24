@@ -7,8 +7,8 @@ a {
     color: #00B7FF;
 }
 
-.title {
-}
+/*.title {
+}*/
 
 .navbar-login
 {
@@ -30,6 +30,7 @@ a {
     height: 128px;
 }
 
+/*
 #inventory, th, td {
     padding: 0px 8px 0px 8px !important;
     width: auto;
@@ -59,11 +60,13 @@ a {
     padding-left: 20px;
 }
 
+
 .question-title {
 }
 
 .question-text {
 }
+*/
 
 .question-answers {
     list-style-type: upper-alpha;

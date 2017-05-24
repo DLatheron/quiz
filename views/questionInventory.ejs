@@ -32,7 +32,7 @@
                     </ul>
                 </td>
                 <td class='author'><%= (question.author) ? question.author : '-' %></td>
-                <td class='date'><%= (question.date) ? question.date : '-' %></td>
+                <td class='date'><%= (question.date) ? moment(question.date).format('h:mma, D MMM YYYY z') : '-' %></td>
             </tr>
         <% }) %>
     </tbody>

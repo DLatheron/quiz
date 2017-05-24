@@ -10,7 +10,7 @@ const isAuthenticated = (req, res, next) => {
         return next();
     }
     res.redirect('/');
-}
+};
 
 // GET login page.
 router.get('/', (req, res) => {

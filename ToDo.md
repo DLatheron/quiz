@@ -1,9 +1,9 @@
 Next:
-- Auto-incrementing user Id?
+x Support POST question with form data as well as JSON.
+x Ability to create a question from the inventory;
 - Ability to delete a question (only one of yours?)
-- Ability to create a question from the inventory;
 - Question creation slide on page?
-- Support POST question with form data as well as JSON.
+- Auto-incrementing user Id?
 
 x Local Mongo database for disconnected operation;
 - Push Mongo data to Internet database;
@@ -25,9 +25,9 @@ Passport
 - Account settings;
 
 Question Creation
-- ID assignment (not BSONID);
-- Author - should be the BSONID of the customer NOT their e-mail address;
-- Date created;
+x ID assignment (not BSONID);
+x Author - should be the BSONID of the customer NOT their e-mail address;
+x Date created;
 - Public/private flag;
 - Save/Cancel buttons;
 - Changes have been made: Save/Cancel dialog;

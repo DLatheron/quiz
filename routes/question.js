@@ -26,7 +26,15 @@ router.get('/', (req, res) => {
     });
 });
 
-router.post('/', (req, res, next) => {
+router.get('/add', (req, res) => {
+    if (!req.user) { return res.send(httpStatus.UNAUTHORIZED); }
+
+    res.render('addQuestion', {
+        title: 'Add Question'
+    });
+});
+
+router.post('/add', (req, res, next) => {
     // TODO: Stop hard-coding this.
     req.user = {
         _id: new ObjectId('59228a6b0f13d25aa824c09f')

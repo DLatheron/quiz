@@ -1,3 +1,10 @@
+Next:
+- Auto-incrementing user Id?
+- Ability to delete a question (only one of yours?)
+- Ability to create a question from the inventory;
+- Question creation slide on page?
+- Support POST question with form data as well as JSON.
+
 x Local Mongo database for disconnected operation;
 - Push Mongo data to Internet database;
 

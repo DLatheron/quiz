@@ -2,6 +2,34 @@
 'use strict';
 
 const MongoClient = require('mongodb').MongoClient;
+const _ = require('lodash');
+
+function getNextSequence(db, name, callback) {
+    db.collection('counters').findAndModify(
+        { '_id': name },
+        [['_id', 'asc']],
+        { '$inc': { counterValue: 1 } },
+        { 'new': true },
+        (error, document) => {
+            callback(error, document.value.counterValue);
+        }
+    );    
+}
+
+function formatQuestionId(db, callback) {
+    getNextSequence(db, 'questionId', (error, counterValue) => {
+        if (error) { callback(error); }
+
+        const questionPrefix = 'Q';
+        const questionIdLength = 8;
+        const questionId = questionPrefix + _.padStart(
+            counterValue.toString(), 
+            questionIdLength, 
+            '0'
+        );
+        callback(null, questionId);
+    });
+}
 
 
 class MongoDB {
@@ -52,8 +80,18 @@ class MongoDB {
     }
 
     addQuestion(question, callback) {
-        this.questionCollection.insert(question, (error, result) => {
-            callback(error, result);
+        formatQuestionId(this.database, (error, questionId) => {
+            if (error) { callback(error); }
+
+            this.questionCollection.insert(
+                {
+                    id: questionId,
+                    text: question.text,
+                    answers: question.answers,
+                    author: question.author,
+                    date: question.date
+                }, callback
+            );
         });
     }
 

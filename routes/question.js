@@ -44,7 +44,9 @@ router.post('/', (req, res, next) => {
     // TODO: Generate the unique question 'id' field.
 
     req.db.addQuestion(question.convertToDBFormat(), (error) => {
-        next(error);
+        if (error) { next(error); }
+
+        res.send(httpStatus.OK);
     });
 });
 

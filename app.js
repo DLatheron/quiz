@@ -9,6 +9,7 @@ const morgan = require('morgan');
 //const logger = require('js-logging').console();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
 const index = require('./routes/index');
 const users = require('./routes/users');
 const question = require('./routes/question');
@@ -51,6 +52,7 @@ app.set('view engine', 'ejs');
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressValidator);
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res, next) {

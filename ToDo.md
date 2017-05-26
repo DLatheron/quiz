@@ -1,15 +1,17 @@
 Next:
 x Support POST question with form data as well as JSON.
 x Ability to create a question from the inventory;
+- UUID game id creation/encoding;
+- Data validation for question submissions;
 - Ability to delete a question (only one of yours?)
 - Question creation slide on page?
-- Auto-incrementing user Id?
+d Auto-incrementing user Id?
 
 x Local Mongo database for disconnected operation;
 - Push Mongo data to Internet database;
 
 Inventory Page
-- Table sorter arrows to indicate direction of sort;
+x Table sorter arrows to indicate direction of sort;
 - Global sort dropdown(?);
 - Limit for page;
 - Ajax get request for page - so that page is refresh free;
@@ -17,9 +19,9 @@ Inventory Page
 - Dynamic search;
 
 Passport
-- Account creation;
-- Account logon;
-- Account logout;
+x Account creation;
+x Account logon;
+x Account logout;
 - Facebook OAuth;
 - Twitter OAuth;
 - Account settings;

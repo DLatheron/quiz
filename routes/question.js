@@ -42,6 +42,18 @@ router.post('/add', (req, res, next) => {
 
     if (!req.user) { return res.send(httpStatus.UNAUTHORIZED); }
 
+    req.checkBody('text', 'question text required').notEmpty();
+    req.checkBody('answers', 'answers required').notEmpty();
+
+    req.sanitize('text').escape();
+    req.sanitize('text').trim();
+
+    const errors = req.validationErrors();
+
+    if (errors) {
+        return res.send(httpStatus.BAD_REQUEST);
+    }
+
     // TODO: Validation of passed question parameters.
 
     const question = new Question(req.body);

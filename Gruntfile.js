@@ -20,7 +20,7 @@ module.exports = function(grunt) {
         },
         jshint: {
             uses_defaults: {
-                src: ['src/**/*.js', 'tests/**/*.js']
+                src: ['src/**/*.js', 'test/**/*.js']
             },
             options: {
                 jshintrc: '.jshintrc'
@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         },
         watch: {
             test: {
-                files: ['Gruntfile.js', 'tests/**/*.js', 'src/**/*.js'],
+                files: ['Gruntfile.js', 'test/**/*.js', 'src/**/*.js'],
                 tasks: ['test']
             }
         }

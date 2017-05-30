@@ -1,4 +1,5 @@
 /* globals require, module */
+'use strict';
 
 const _ = require('lodash');
 
@@ -29,7 +30,7 @@ function shortenUuid(uuid) {
         binaryStream += binary;
     }
 
-    console.log(`Input Binary Stream: ${binaryStream}`);
+    //console.log(`Input Binary Stream: ${binaryStream}`);
 
     let writeBuffer = 0;
     let bitsWritten = 0;
@@ -53,7 +54,7 @@ function shortenUuid(uuid) {
         ++index;
     }
 
-    console.log(`Output: ${outputStream}`);
+    //console.log(`Output: ${outputStream}`);
 
     return outputStream;
 }

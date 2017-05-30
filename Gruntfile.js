@@ -12,7 +12,7 @@ module.exports = function(grunt) {
                 bail: true
             },
             test: {
-                src: ['tests/*.js'],
+                src: ['test/**/*.js'],
                 options: {
                     reporter: 'nyan'
                 }

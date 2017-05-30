@@ -1,4 +1,6 @@
 /* globals require, describe, it */
+'use strict';
+
 const shortenUuid = require('../../src/util/shortenUuid');
 //const uuid = require('uuid');
 

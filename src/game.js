@@ -1,21 +1,19 @@
 /* globals module, require */
 'use strict';
 
+const attempt = require('attempt');
 const randomString = require('./util/randomString');
 
-function game(options) {
+function game(db, options, done) {
+    if (typeof options === 'function') {
+        done = options;
+        options = {};
+    }
+
+    const maxRetries = options.maxRetries || 10;
     const maxPlayers = options.maxPlayers || 32;
     const minPlayers = options.minPlayers || 1;
     const players = [];
-    const gameId = generateUniqueGameId();
-
-    function generateUniqueGameId() {
-        const gameId = randomString({
-            format: 'AA9A-AA9A'
-        }).generate();
-
-        return gameId;
-    }
 
     function start() {
         if (canStart) {
@@ -64,26 +62,46 @@ function game(options) {
 
     // Effectively the game is just the lobby portion of the game, once it becomes
     // status 'playing' then it will be handled via real-time comms...
+    const gameIdGenerator = randomString({
+        format: 'AA9A-AA9A'
+    });
 
-    return {
-        get minPlayers() {
-            return minPlayers;
+    attempt(
+        { retries: maxRetries },
+        function(attempt) {
+            const gameId = gameIdGenerator.generate();
+
+            db.newGame(gameId, this);
         },
-        get maxPlayers() {
-            return maxPlayers;
-        },
-        get gameId() {
-            return gameId;
-        },
-        get status() {
-            return 'lobby';
-        },
-        start,
-        stop,
-        canStart,
-        addPlayer,
-        removePlayer
-    };
+        (error, gameId) => {
+            if (error) {
+                return done(error);
+            }
+
+            done(null, {
+                get minPlayers() {
+                    return minPlayers;
+                },
+                get maxPlayers() {
+                    return maxPlayers;
+                },
+                get gameId() {
+                    return gameId;
+                },
+                get status() {
+                    return 'lobby';
+                },
+                get numPlayers() {
+                    return players.length;
+                },
+                start,
+                stop,
+                canStart,
+                addPlayer,
+                removePlayer
+            });
+        }
+    );
 }
 
 module.exports = game;

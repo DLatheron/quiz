@@ -105,9 +105,26 @@ describe('#game', () => {
 
     context('game created', () => {
         const player1 = { 
+            id: 'p1',
             name: 'Player 1'
         };
-        
+        const player2 = { 
+            id: 'p2',
+            name: 'Player 2'
+        };
+        const player3 = { 
+            id: 'p3',
+            name: 'Player 3'
+        };     
+        const player4 = { 
+            id: 'p4',
+            name: 'Player 4'
+        };
+        const player5 = { 
+            id: 'p5',
+            name: 'Player 5'
+        };
+
         let gameUnderTest;
 
         beforeEach((done) => {
@@ -142,26 +159,117 @@ describe('#game', () => {
                 assert.strictEqual(gameUnderTest.numPlayers, 1);
             });
 
-            it('should return false if a player could not be added to the game');
-            it('should not add a player if the maximum players count would be exceeded');
+            it('should return false if a player.id is added more than once');
+            it('should rnot add the player if the player.id added more than once');
+
+            context('with a full game', () => {
+                beforeEach(() => {
+                    gameUnderTest.addPlayer(player1);
+                    gameUnderTest.addPlayer(player2);
+                    gameUnderTest.addPlayer(player3);
+                    gameUnderTest.addPlayer(player4);
+                });
+
+                it('should return false if a player could not be added to the game', () => {
+                    assert.strictEqual(gameUnderTest.addPlayer(player5), false);
+                });
+
+                it('should not add a player if the maximum players count would be exceeded', () => {
+                    gameUnderTest.addPlayer(player5);
+                    assert.strictEqual(gameUnderTest.numPlayers, 4);
+                });
+            });
+        });
+
+        describe('#getPlayer', () => {
+            beforeEach(() => {
+                gameUnderTest.addPlayer(player1);
+                gameUnderTest.addPlayer(player2);
+                gameUnderTest.addPlayer(player3);
+                gameUnderTest.addPlayer(player4);
+            });
+            
+            it('should return the player if they are present', () => {
+                assert.deepStrictEqual(gameUnderTest.getPlayer(player3.id), player3);
+            });
+
+            it('should return undefined if the player is not found', () => {
+                assert.deepStrictEqual(gameUnderTest.getPlayer(player5.id), undefined);
+            });
         });
 
         describe('#canStart', () => {
-            it('should return false if minimum players are not present');
-            it('should return true once minimum players are present');
+            it('should return false if there are no player present', () => {
+                assert.strictEqual(gameUnderTest.canStart, false);
+            });
+
+            it('should return false if minimum players are not present', () => {
+                gameUnderTest.addPlayer(player1);
+                assert.strictEqual(gameUnderTest.canStart, false);
+            });
+
+            it('should return true once minimum players are present', () => {
+                gameUnderTest.addPlayer(player1);
+                gameUnderTest.addPlayer(player2);
+                assert.strictEqual(gameUnderTest.canStart, true);
+            });
         });
 
         describe('#removePlayer', () => {
-            it('should remove the requested player');
-            it('should leave players unchanged if the player does not exist');
+            beforeEach(() => {
+                gameUnderTest.addPlayer(player1);
+                gameUnderTest.addPlayer(player2);
+                gameUnderTest.addPlayer(player3);
+                gameUnderTest.addPlayer(player4);
+            });
+
+            it('should return true if it removes the requested player', () => {
+                assert.strictEqual(gameUnderTest.removePlayer(player3), true);
+            });
+
+            it('should remove the requested player', () => {
+                gameUnderTest.removePlayer(player3.id);
+                assert.strictEqual(gameUnderTest.getPlayer(player3.id, undefined));
+            });
+
+            it('should return false if the player cannot be removed', () => {
+                assert.strictEqual(gameUnderTest.removePlayer(player5), false);
+            });
+
+            it('should leave players unchanged if the player does not exist', () => {
+                gameUnderTest.removePlayer(player5);
+                assert.strictEqual(gameUnderTest.numPlayers, 4);
+            });
         });
 
         describe('#start', () => {
-            it('should not allow a game to start if there are insufficient players');
-            it('should start a game if there are at least the minimum number of players');
+            it('should throw if the game cannot start', () => {
+                gameUnderTest.addPlayer(player1);
+                assert.throws(() => {
+                    gameUnderTest.start();
+                });
+            });
+
+            it('should set the status to "playing" if the game can start', () => {
+                gameUnderTest.addPlayer(player1);
+                gameUnderTest.addPlayer(player2);
+                gameUnderTest.start();
+                assert.strictEqual(gameUnderTest.status, 'playing');
+            });
         });
 
         describe('#stop', () => {
+            beforeEach(() => {
+                gameUnderTest.addPlayer(player1);
+                gameUnderTest.addPlayer(player2);
+                gameUnderTest.start();
+            });
+
+            it('should set the status to "lobby"', () => {
+                gameUnderTest.stop();
+                assert.strictEqual(gameUnderTest.status, 'lobby');
+            });
+
             it('should remove the game from the database');
         });
     });

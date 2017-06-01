@@ -14,15 +14,21 @@ function game(db, options, done) {
     const maxPlayers = options.maxPlayers || 32;
     const minPlayers = options.minPlayers || 1;
     const players = [];
+    let status = 'lobby';
 
     function start() {
-        if (canStart) {
+        if (!canStart()) {
             throw new Error('Unable to start game');
         }
+
+        status = 'playing';
+
+        // TODO: Do whatever is necessary to start the game...
     }
 
     function stop() {
-
+        // TODO: Do whatever is necessary to stop the game.
+        status = 'lobby';
     }
 
     function canStart() {
@@ -38,10 +44,15 @@ function game(db, options, done) {
         }
     }
 
-    function removePlayer(playerId) {
-        const index = players.find((player) => player.id === playerId);
+    function getPlayer(playerId) {
+        return players.find((player) => player.id === playerId);
+    }
+
+    function removePlayer(player) {
+        const playerId = player.id || player;
+        const index = players.findIndex((player) => player.id === playerId);
         if (index !== -1) {
-            players.split(index, 1);
+            players.splice(index, 1);
             return true;
         } else {
             return false;
@@ -89,16 +100,19 @@ function game(db, options, done) {
                     return gameId;
                 },
                 get status() {
-                    return 'lobby';
+                    return status;
+                },
+                get canStart() {
+                    return canStart();
                 },
                 get numPlayers() {
                     return players.length;
                 },
                 start,
                 stop,
-                canStart,
                 addPlayer,
-                removePlayer
+                removePlayer,
+                getPlayer
             });
         }
     );

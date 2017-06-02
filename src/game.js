@@ -82,14 +82,16 @@ function game(db, options, done) {
         function(attempt) {
             const gameId = gameIdGenerator.generate();
 
-            db.newGame(gameId, this);
+            db.newGame(gameId, (error) => this(error, gameId));
         },
         (error, gameId) => {
             if (error) {
                 return done(error);
             }
 
-            done(null, {
+            // TODO: Now that we have reached here we can update the game record - because
+            //       we were the one who inserted it...
+            const newGame = {
                 get minPlayers() {
                     return minPlayers;
                 },
@@ -113,7 +115,9 @@ function game(db, options, done) {
                 addPlayer,
                 removePlayer,
                 getPlayer
-            });
+            };
+
+            db.storeGame(newGame, done);
         }
     );
 }

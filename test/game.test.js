@@ -8,6 +8,26 @@ const sinon = require('sinon');
 describe('#game', () => {
     const minPlayers = 2;
     const maxPlayers = 4;
+    const player1 = { 
+        id: 'p1',
+        name: 'Player 1'
+    };
+    const player2 = { 
+        id: 'p2',
+        name: 'Player 2'
+    };
+    const player3 = { 
+        id: 'p3',
+        name: 'Player 3'
+    };     
+    const player4 = { 
+        id: 'p4',
+        name: 'Player 4'
+    };
+    const player5 = { 
+        id: 'p5',
+        name: 'Player 5'
+    };    
 
     let sandbox;
     let fakeDb;
@@ -16,7 +36,8 @@ describe('#game', () => {
         sandbox = sinon.sandbox.create();
 
         fakeDb = {
-            newGame: () => assert.fail() //(gameId, callback) => callback(null, gameId)
+            newGame: () => assert.fail(),
+            storeGame: () => assert.fail()
         };
     });
 
@@ -27,7 +48,8 @@ describe('#game', () => {
 
     describe('#minPlayers', (done) => {
         it('should assign a minimum number of players', (done) => {
-            sinon.stub(fakeDb, 'newGame').yields(null, 'gameId');
+            sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 minPlayers: minPlayers,
@@ -40,7 +62,8 @@ describe('#game', () => {
 
     describe('#maxPlayers', (done) => {
         it('should assign a maximum number of players', (done) => {
-            sinon.stub(fakeDb, 'newGame').yields(null, 'gameId');
+            sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 maxPlayers: maxPlayers
@@ -52,8 +75,20 @@ describe('#game', () => {
     });
 
     describe('#gameId', (done) => {
+        it('should check that the game can be created in the database', () => {
+            sandbox.mock(fakeDb).expects('newGame').once().yields();
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+
+            game(fakeDb, {
+                maxRetries: 0
+            }, (error, game) => {
+                done();
+            });
+        });
+
         it('should create a game', (done) => {
-            sinon.stub(fakeDb, 'newGame').yields();
+            sandbox.stub(fakeDb, 'newGame').yields();
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, (error, game) => {
                 assert(game, 'game not created');
@@ -62,34 +97,37 @@ describe('#game', () => {
         });
 
         it('should assign a game id', (done) => {
-            sinon.stub(fakeDb, 'newGame').yields(null, 'gameId');
+            sandbox.stub(fakeDb, 'newGame').yields(null, 'gameId');
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, (error, game) => {
-                assert.strictEqual(game.gameId, 'gameId');
+                assert.strictEqual(typeof game.gameId, 'string');
                 done(error);
             });
         });
 
         it('should retry until it gets a unique id', (done) => {
-            sinon.stub(fakeDb, 'newGame')
+            sandbox.stub(fakeDb, 'newGame')
                 .onCall(0).yields('game already exists')
                 .onCall(1).yields('game already exists')
                 .onCall(2).yields('game already exists')
                 .onCall(3).yields(null, 'newGameId');
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 maxRetries: 3
             }, (error, game) => {
-                assert.strictEqual(game.gameId, 'newGameId');
+                assert.strictEqual(typeof game.gameId, 'string');
                 done(error);
             });
         });
 
         it('should report an error if the game cannot be created', (done) => {
-            sinon.stub(fakeDb, 'newGame')
+            sandbox.stub(fakeDb, 'newGame')
                 .onCall(0).yields('game already exists')
                 .onCall(1).yields('game already exists')
                 .onCall(2).yields('game already exists');
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 maxRetries: 2
@@ -99,36 +137,24 @@ describe('#game', () => {
             });            
         });
 
-        it('should check to ensure database to ensure that the game id is unique');
-        it('should write the game to the database');
+        it('should write the built game to the database', (done) => {
+            sandbox.stub(fakeDb, 'newGame').yields();
+            sandbox.mock(fakeDb).expects('storeGame').once().callsFake((game, callback) => callback(null, game));
+
+            game(fakeDb, {
+                maxRetries: 0
+            }, (error, game) => {
+                done();
+            });
+        });
     });
 
     context('game created', () => {
-        const player1 = { 
-            id: 'p1',
-            name: 'Player 1'
-        };
-        const player2 = { 
-            id: 'p2',
-            name: 'Player 2'
-        };
-        const player3 = { 
-            id: 'p3',
-            name: 'Player 3'
-        };     
-        const player4 = { 
-            id: 'p4',
-            name: 'Player 4'
-        };
-        const player5 = { 
-            id: 'p5',
-            name: 'Player 5'
-        };
-
         let gameUnderTest;
 
         beforeEach((done) => {
-            sinon.stub(fakeDb, 'newGame').yields();
+            sandbox.stub(fakeDb, 'newGame').yields();
+            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 minPlayers: 2,
@@ -159,7 +185,10 @@ describe('#game', () => {
                 assert.strictEqual(gameUnderTest.numPlayers, 1);
             });
 
-            it('should return false if a player.id is added more than once');
+            it('should return false if a player.id is added more than once', () => {
+
+            });
+
             it('should rnot add the player if the player.id added more than once');
 
             context('with a full game', () => {

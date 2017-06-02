@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --debug=5858 ./bin/www"
+    "start": "node --debug=5858 ./bin/www",
+    "test": "mocha test --recursive"
   },
   "dependencies": {
     "async": "^2.4.1",

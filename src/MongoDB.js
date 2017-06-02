@@ -123,6 +123,14 @@ class MongoDB {
     storeUser(user, callback) {
         this.database.collection('users').insert(user, callback);
     }
+
+    newGame(gameId, callback) {
+        this.database.collection('games').insert({ _id: gameId}, callback);
+    }
+
+    storeGame(game, callback) {
+        this.database.collection('games').update({ _id: game.gameId}, game, callback);
+    }
 }
 
 

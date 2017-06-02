@@ -1,4 +1,4 @@
-/* globals require, describe, it, context, beforeEach */
+/* globals require, describe, it, context, beforeEach, afterEach */
 'use strict';
 
 const assert = require('assert');
@@ -16,6 +16,7 @@ describe('#MongoDB', () => {
         message: 'An error occurred'
     };
 
+    let sandbox;
     let MongoDB;
     let mongoDB;
     let MongoClient;
@@ -23,8 +24,10 @@ describe('#MongoDB', () => {
     let fakeDatabase;
 
     beforeEach(() => {
+        sandbox = sinon.sandbox.create();
+
         MongoClient = {
-            connect: () => { assert.fail(); }
+            connect: () => assert.fail()
         };
 
         MongoDB = proxyquire('../src/MongoDB.js', {
@@ -32,14 +35,20 @@ describe('#MongoDB', () => {
         });
 
         fakeCollection = {
-            find: () => { assert.fail(); },
-            findOne: () => { assert.fail(); }
+            find: () => assert.fail(),
+            findOne: () => assert.fail(),
+            insert: () => assert.fail()
         };
 
         fakeDatabase = {
             collection: () => { return fakeCollection; },
-            close: () => { assert.fail(); }
+            close: () => assert.fail()
         };        
+    });
+
+    afterEach(() => {
+        sandbox.verify();
+        sandbox.restore();
     });
 
     describe('#constructor', () => {
@@ -67,7 +76,7 @@ describe('#MongoDB', () => {
 
         describe('#connect', () => {
             it('should attempt to connect to the Mongo database', () => {
-                const connectMock = sinon.mock(MongoClient)
+                const connectMock = sandbox.mock(MongoClient)
                     .expects('connect')
                     .once()
                     .withArgs(
@@ -82,7 +91,7 @@ describe('#MongoDB', () => {
             });            
             
             it('should callback with an error if an error occurs', (done) => {
-                sinon.stub(MongoClient, 'connect').yields(expectedError);
+                sandbox.stub(MongoClient, 'connect').yields(expectedError);
 
                 mongoDB.connect((error, database) => {
                     assert.strictEqual(error, expectedError);
@@ -92,7 +101,7 @@ describe('#MongoDB', () => {
             });
 
             it('should callback with database if it succeeds', (done) => {
-                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+                sandbox.stub(MongoClient, 'connect').yields(null, fakeDatabase);
 
                 mongoDB.connect((error, database) => {
                     assert(!error);
@@ -106,8 +115,8 @@ describe('#MongoDB', () => {
             let closeMock;
 
             beforeEach(() => {
-                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
-                closeMock = sinon.mock(fakeDatabase)
+                sandbox.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+                closeMock = sandbox.mock(fakeDatabase)
                     .expects('close')
                     .once();
             });
@@ -143,7 +152,7 @@ describe('#MongoDB', () => {
             });
 
             it('should return true after connect completes successfully', (done) => {
-                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+                sandbox.stub(MongoClient, 'connect').yields(null, fakeDatabase);
 
                 mongoDB.connect(() => {
                     assert(mongoDB.isConnected());
@@ -152,7 +161,7 @@ describe('#MongoDB', () => {
             });
 
             it('should return false if connect fails', (done) => {
-                sinon.stub(MongoClient, 'connect').yields(expectedError);
+                sandbox.stub(MongoClient, 'connect').yields(expectedError);
 
                 mongoDB.connect(() => {
                     assert(!mongoDB.isConnected());
@@ -161,8 +170,8 @@ describe('#MongoDB', () => {
             });
 
             it('should return false after disconnect is called', (done) => {
-                sinon.stub(MongoClient, 'connect').yields(null, fakeDatabase);
-                sinon.stub(fakeDatabase, 'close').yields();
+                sandbox.stub(MongoClient, 'connect').yields(null, fakeDatabase);
+                sandbox.stub(fakeDatabase, 'close').yields();
 
                 mongoDB.connect(() => {
                     mongoDB.disconnect(() => {
@@ -196,39 +205,35 @@ describe('#MongoDB', () => {
                 ]
             };
 
-            beforeEach(() => {
+            beforeEach((done) => {
                 sinon.stub(fakeCollection, 'findOne')
                     .withArgs('an error occurred').yields(expectedError)
                     .withArgs('no question found').yields(null, null)
                     .withArgs('one question').yields(null, expectedQuestion);
+
+                mongoDB.connect(done);
             });
 
             it('should callback with an error if an error occurs', (done) => {
-                mongoDB.connect(() => {
-                    mongoDB.getQuestion('an error occurred', (error) => {
-                        assert.strictEqual(error, expectedError);
-                        done();
-                    });
+                mongoDB.getQuestion('an error occurred', (error) => {
+                    assert.strictEqual(error, expectedError);
+                    done();
                 });
             });
 
             it('should callback with null if no question was found', (done) => {
-                mongoDB.connect(() => {
-                    mongoDB.getQuestion('no question found', (error, question) => {
-                        assert(!error);
-                        assert.equal(question, null);
-                        done();
-                    });
+                mongoDB.getQuestion('no question found', (error, question) => {
+                    assert(!error);
+                    assert.equal(question, null);
+                    done();
                 });
             });
 
             it('should callback with the a question if a question is found', (done) => {
-                mongoDB.connect(() => {
-                    mongoDB.getQuestion('one question', (error, question) => {
-                        assert(!error);
-                        assert.strictEqual(question, expectedQuestion);
-                        done();
-                    });
+                mongoDB.getQuestion('one question', (error, question) => {
+                    assert(!error);
+                    assert.strictEqual(question, expectedQuestion);
+                    done();
                 });
             });
         });
@@ -249,51 +254,76 @@ describe('#MongoDB', () => {
             }];
             let arrayStub;
                         
-            beforeEach(() => {
+            beforeEach((done) => {
                 arrayStub = {
                     toArray: () => {}
                 };
 
-                sinon.stub(fakeCollection, 'find')
+                sandbox.stub(fakeCollection, 'find')
                     .returns(arrayStub);
+
+                mongoDB.connect(done);
             });
 
             it('should callback with an error if an error occurs', (done) => {
-                sinon.stub(arrayStub, 'toArray')
+                sandbox.stub(arrayStub, 'toArray')
                     .yields(expectedError);
                 
-                mongoDB.connect(() => {
-                    mongoDB.getQuestions('an error occurred', (error) => {
-                        assert.strictEqual(error, expectedError);
-                        done();
-                    });
+                mongoDB.getQuestions('an error occurred', (error) => {
+                    assert.strictEqual(error, expectedError);
+                    done();
                 });
             });
 
             it('should callback with null if no question were found', (done) => {
-                sinon.stub(arrayStub, 'toArray')
+                sandbox.stub(arrayStub, 'toArray')
                     .yields(null, null);
                 
-                mongoDB.connect(() => {
-                    mongoDB.getQuestions('no questions found', (error, questions) => {
-                        assert(!error);
-                        assert.equal(questions, null);
-                        done();
-                    });
+                mongoDB.getQuestions('no questions found', (error, questions) => {
+                    assert(!error);
+                    assert.equal(questions, null);
+                    done();
                 });
             });
 
             it('should callback with an array of questions if any where found', (done) => {
-                sinon.stub(arrayStub, 'toArray')
+                sandbox.stub(arrayStub, 'toArray')
                     .yields(null, expectedQuestions);
                 
-                mongoDB.connect(() => {
-                    mongoDB.getQuestions('questions found', (error, questions) => {
-                        assert(!error);
-                        assert.deepStrictEqual(questions, expectedQuestions);
-                        done();
-                    });
+                mongoDB.getQuestions('questions found', (error, questions) => {
+                    assert(!error);
+                    assert.deepStrictEqual(questions, expectedQuestions);
+                    done();
                 });
+            });
+        });
+
+        describe('#getUser', () => {
+
+        });
+
+        describe('#storeUser', () => {
+
+        });
+
+        describe('#newGame', () => {
+            beforeEach((done) => {
+                mongoDB.connect(done);
+            });
+
+            it('should add a unique game to the database', (done) => {
+                sandbox.stub(fakeCollection, 'insert').yields(null);
+                mongoDB.newGame('AAA9-AAA9', (error) => {
+                    done(error);
+                }); 
+            });
+
+            it('should emit an error if the game already exists', (done) => {
+                sandbox.stub(fakeCollection, 'insert').yields(expectedError);
+                mongoDB.newGame('AAA9-AAA9', (error) => {
+                    assert.strictEqual(error, expectedError);
+                    done(!error);
+                }); 
             });
         });
     });

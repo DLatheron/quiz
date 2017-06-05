@@ -117,7 +117,12 @@ function game(db, options, done) {
                 getPlayer
             };
 
-            db.storeGame(newGame, done);
+            db.storeGame(newGame, (error) => {
+                if (error) {
+                    done(error);
+                }
+                done(null, newGame);
+            });
         }
     );
 }

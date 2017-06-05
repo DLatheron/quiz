@@ -1,4 +1,7 @@
 Next:
+- Database just holds the game id -> IP/port mapping;
+- game creates a lobby server for chatting and the game;
+- That is a TCP server...
 x Support POST question with form data as well as JSON.
 x Ability to create a question from the inventory;
 - UUID game id creation/encoding;

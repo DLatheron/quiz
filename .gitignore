@@ -37,8 +37,9 @@ obj
 # Optional REPL history
 .node_repl_history
 
-#VS code
+# VS code
 .vs
 .vscode
 
+# Other
 .DS_Store

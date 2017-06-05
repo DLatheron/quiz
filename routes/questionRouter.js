@@ -9,7 +9,9 @@ const shuffle = require('shuffle-array');
 const { ObjectId } = require('mongodb');
 
 router.get('/', (req, res) => {
-    if (!req.user) { return res.send(httpStatus.UNAUTHORIZED); }
+    if (!req.user) { 
+        return res.send(httpStatus.UNAUTHORIZED); 
+    }
 
     req.db.getQuestion({}, (error, question) => {
         if (error) {
@@ -27,7 +29,9 @@ router.get('/', (req, res) => {
 });
 
 router.get('/add', (req, res) => {
-    if (!req.user) { return res.send(httpStatus.UNAUTHORIZED); }
+    if (!req.user) { 
+        return res.send(httpStatus.UNAUTHORIZED); 
+    }
 
     res.render('addQuestion', {
         title: 'Add Question'
@@ -40,7 +44,9 @@ router.post('/add', (req, res, next) => {
         _id: new ObjectId('59228a6b0f13d25aa824c09f')
     };
 
-    if (!req.user) { return res.send(httpStatus.UNAUTHORIZED); }
+    if (!req.user) { 
+        return res.send(httpStatus.UNAUTHORIZED); 
+    }
 
     req.checkBody('text', 'question text required').notEmpty();
     req.checkBody('answers', 'answers required').notEmpty();

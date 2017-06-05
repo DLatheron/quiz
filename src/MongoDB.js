@@ -131,6 +131,10 @@ class MongoDB {
     storeGame(game, callback) {
         this.database.collection('games').update({ _id: game.gameId}, game, callback);
     }
+
+    retrieveGame(gameId, callback) {
+        this.database.collection('games').findOne({ _id: gameId }, callback);
+    }
 }
 
 

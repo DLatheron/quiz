@@ -9,12 +9,12 @@ const morgan = require('morgan');
 //const logger = require('js-logging').console();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const expressValidator = require('express-validator');
-const index = require('./routes/index');
-const users = require('./routes/users');
-const question = require('./routes/question');
-const questionInventory = require('./routes/questionInventory');
-const game = require('./routes/game');
+//const expressValidator = require('express-validator');
+const indexRouter = require('./routes/indexRouter');
+const usersRouter = require('./routes/usersRouter');
+const questionRouter = require('./routes/questionRouter');
+const questionInventoryRouter = require('./routes/questionInventoryRouter');
+const gameRouter = require('./routes/gameRouter');
 const { argv } = require('yargs');
 const nconf = require('nconf');
 const authentication = require('./src/Authentication');
@@ -52,18 +52,18 @@ app.set('view engine', 'ejs');
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(expressValidator);
+//app.use(expressValidator);
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res, next) {
     next();
 });
 app.setRouting = function() {
-    app.use('/', index);
-    app.use('/users', users);
-    app.use('/question', question);
-    app.use('/questionInventory', questionInventory);
-    app.use('/game', game);
+    app.use('/', indexRouter);
+    app.use('/users', usersRouter);
+    app.use('/question', questionRouter);
+    app.use('/questionInventory', questionInventoryRouter);
+    app.use('/game', gameRouter);
 };
 app.setErrorHandling = function() {
     // catch 404 and forward to error handler
@@ -108,14 +108,18 @@ app.start = (callback) => {
 
 
 
-        const game = require('./src/game');
+        // const game = require('./src/game');
+        // const gameServer = require('./src/gameServer');
 
-        game(mongoDB, (error, newGame) => {
-            console.info(`Game id: ${newGame._id} ${newGame.gameId}`);
-            // game(mongoDB, (error, newGame) => {
+        // game(mongoDB, (error, newGame) => {
+        //     console.info(`Game id: ${newGame._id} ${newGame.gameId}`);
 
-            // });
-        });
+        //     const server = gameServer(newGame);
+
+        //     // game(mongoDB, (error, newGame) => {
+
+        //     // });
+        // });
 
 
 

@@ -63,6 +63,7 @@ function game(db, options, done) {
     function convertToDBFormat(gameToStore) {
         return _.pick(gameToStore, [
             '_id',
+            'serverAddress',
             'status',
         ]);
     }
@@ -100,15 +101,17 @@ function game(db, options, done) {
             // TODO: Now that we have reached here we can update the game record - because
             //       we were the one who inserted it...
             const newGame = {
-                _id: gameId,
+                get _id() {
+                    return gameId;
+                },
+                get serverAddress() {
+                    return 'ServerAddressToGoHere';
+                },
                 get minPlayers() {
                     return minPlayers;
                 },
                 get maxPlayers() {
                     return maxPlayers;
-                },
-                get gameId() {
-                    return gameId;
                 },
                 get status() {
                     return status;

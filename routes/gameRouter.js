@@ -22,13 +22,13 @@ router.get('/newGame', (req, res) => {
             return res.send(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        console.info(`Game id: ${newGame._id} ${newGame.gameId}`);
+        console.info(`Game id: ${newGame._id}`);
 
         const server = gameServer(newGame);
 
         res.render('newGame', {
             title: 'Create Game',
-            gameId: newGame.gameId,
+            gameId: newGame._id,
             gameServerAddress: `${server.address.address}:${server.address.port}`
         });
     });

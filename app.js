@@ -105,28 +105,6 @@ app.start = (callback) => {
             throw error;
         }
 
-
-
-
-        // const game = require('./src/game');
-        // const gameServer = require('./src/gameServer');
-
-        // game(mongoDB, (error, newGame) => {
-        //     console.info(`Game id: ${newGame._id} ${newGame.gameId}`);
-
-        //     const server = gameServer(newGame);
-
-        //     // game(mongoDB, (error, newGame) => {
-
-        //     // });
-        // });
-
-
-
-
-
-
-
         authentication(mongoDB);
 
         app.use((req, res, next) => {

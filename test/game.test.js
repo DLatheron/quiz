@@ -73,7 +73,7 @@ describe('#game', () => {
         });
     });
 
-    describe('#gameId', (done) => {
+    describe('#_id', (done) => {
         it('should check that the game can be created in the database', () => {
             sandbox.mock(fakeDb).expects('newGame').once().yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
@@ -100,7 +100,7 @@ describe('#game', () => {
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, (error, game) => {
-                assert.strictEqual(typeof game.gameId, 'string');
+                assert.strictEqual(typeof game._id, 'string');
                 done(error);
             });
         });
@@ -116,7 +116,7 @@ describe('#game', () => {
             game(fakeDb, {
                 maxRetries: 3
             }, (error, game) => {
-                assert.strictEqual(typeof game.gameId, 'string');
+                assert.strictEqual(typeof game._id, 'string');
                 done(error);
             });
         });
@@ -141,7 +141,14 @@ describe('#game', () => {
             sandbox.mock(fakeDb)
                 .expects('storeGame')
                 .once()
-                .withExactArgs(sinon.match({ _id: sinon.match.string, status: 'lobby' }), sinon.match.func)
+                .withExactArgs(sinon.match(
+                    { 
+                        _id: sinon.match.string, 
+                        serverAddress: sinon.match.string, 
+                        status: 'lobby' 
+                    }), 
+                    sinon.match.func
+                )
                 .callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {

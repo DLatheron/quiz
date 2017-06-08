@@ -129,7 +129,7 @@ class MongoDB {
     }
 
     storeGame(game, callback) {
-        this.database.collection('games').update({ _id: game.gameId}, game, callback);
+        this.database.collection('games').update({ _id: game._id}, game, callback);
     }
 
     retrieveGame(gameId, callback) {

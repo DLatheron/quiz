@@ -34,7 +34,6 @@ describe('#game', () => {
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
-
         fakeDb = {
             newGame: () => assert.fail(),
             storeGame: () => assert.fail()
@@ -139,7 +138,11 @@ describe('#game', () => {
 
         it('should write the built game to the database', (done) => {
             sandbox.stub(fakeDb, 'newGame').yields();
-            sandbox.mock(fakeDb).expects('storeGame').once().callsFake((game, callback) => callback(null, game));
+            sandbox.mock(fakeDb)
+                .expects('storeGame')
+                .once()
+                .withExactArgs(sinon.match({ _id: sinon.match.string, status: 'lobby' }), sinon.match.func)
+                .callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
                 maxRetries: 0

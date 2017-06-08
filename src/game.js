@@ -3,6 +3,7 @@
 
 const attempt = require('attempt');
 const randomString = require('./util/randomString');
+const _ = require('lodash');
 
 function game(db, options, done) {
     if (typeof options === 'function') {
@@ -59,6 +60,13 @@ function game(db, options, done) {
         }
     }
 
+    function convertToDBFormat(gameToStore) {
+        return _.pick(gameToStore, [
+            '_id',
+            'status',
+        ]);
+    }
+
     // How do we manage games - they need to be handled by sticky sessions.
     // We will need to 'spawn' a handling thread which deals with the timeouts etc.
     // That bit is going to be tricky!
@@ -92,6 +100,7 @@ function game(db, options, done) {
             // TODO: Now that we have reached here we can update the game record - because
             //       we were the one who inserted it...
             const newGame = {
+                _id: gameId,
                 get minPlayers() {
                     return minPlayers;
                 },
@@ -117,7 +126,7 @@ function game(db, options, done) {
                 getPlayer
             };
 
-            db.storeGame(newGame, (error) => {
+            db.storeGame(convertToDBFormat(newGame), (error) => {
                 if (error) {
                     done(error);
                 }

@@ -1,5 +1,7 @@
 Next:
+- Would be better to resolve the external IP address once and for all;
 - Database just holds the game id -> IP/port mapping;
+- External IP
 - game creates a lobby server for chatting and the game;
 - That is a TCP server...
 x Support POST question with form data as well as JSON.

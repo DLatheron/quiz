@@ -3,7 +3,9 @@
 
 const net = require('net');
 
-function gameServer(game) {
+
+function gameServer(game, options, done) {
+    const externalIPAddress = options.externalIPAddress || 'localhost';
     const clients = [];
 
     function broadcast(message, sender) {
@@ -34,24 +36,19 @@ function gameServer(game) {
         });
     });
 
-    server.on('error', (error) => {
-        console.error(error);
-    });
-
+    server.on('error', done);
     server.on('listening', () => {
         console.info(`Server listening on ${server.address().address} ${server.address().port}`);
+
+        done(null, {
+            address: `${externalIPAddress}:${server.port}`,
+            close() {
+                server.close();
+            }
+        });
     });
 
     server.listen();
-
-    return {
-        get address() {
-            return server.address();
-        },
-        close() {
-            server.close();
-        }
-    };
 }
 
 

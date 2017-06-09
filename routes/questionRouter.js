@@ -39,11 +39,6 @@ router.get('/add', (req, res) => {
 });
 
 router.post('/add', (req, res, next) => {
-    // TODO: Stop hard-coding this.
-    // req.user = {
-    //     _id: new ObjectId('59228a6b0f13d25aa824c09f')
-    // };
-
     if (!req.user) { 
         return res.send(httpStatus.UNAUTHORIZED); 
     }

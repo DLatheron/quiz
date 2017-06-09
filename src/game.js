@@ -11,6 +11,7 @@ function game(db, options, done) {
         options = {};
     }
 
+    const serverAddress = options.serverAddress;
     const maxRetries = options.maxRetries || 10;
     const maxPlayers = options.maxPlayers || 32;
     const minPlayers = options.minPlayers || 1;
@@ -105,7 +106,7 @@ function game(db, options, done) {
                     return gameId;
                 },
                 get serverAddress() {
-                    return 'ServerAddressToGoHere';
+                    return serverAddress;
                 },
                 get minPlayers() {
                     return minPlayers;

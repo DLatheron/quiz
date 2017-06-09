@@ -1,4 +1,11 @@
 <% layout('layout') -%>
 
+<script type='text/javascript'>
+    gameId = '<%= gameId %>';
+    serverAddress = '<%= gameServerAddress %>';
+</script>
+
+<script src='/client/gameplay.js'></script>
+
 <p><%= gameId %></p>
 <p><%= gameServerAddress %></p>

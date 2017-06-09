@@ -1,7 +1,14 @@
 Next:
-- Would be better to resolve the external IP address once and for all;
-- Database just holds the game id -> IP/port mapping;
-- External IP
+x Would be better to resolve the external IP address once and for all;
+x Database just holds the game id -> IP/port mapping;
+x External IP
+
+Joining a game:
+- Open a web socket to the provided IP address;
+- Send a join message that contains the gameId - server returns an error if
+  the gameId does not match (eliminates old games);
+- 
+
 - game creates a lobby server for chatting and the game;
 - That is a TCP server...
 x Support POST question with form data as well as JSON.

@@ -152,7 +152,8 @@ describe('#game', () => {
                 .callsFake((game, callback) => callback(null, game));
 
             game(fakeDb, {
-                maxRetries: 0
+                maxRetries: 0,
+                serverAddress: 'serverAddress:port'
             }, (error, game) => {
                 done();
             });

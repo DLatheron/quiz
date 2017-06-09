@@ -24,7 +24,9 @@ router.get('/create', (req, res) => {
             return res.send(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        game(req.db, (error, newGame) => {
+        game(req.db, {
+            serverAddress: server.address
+        }, (error, newGame) => {
             if (error) {
                 return res.send(httpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -79,7 +81,7 @@ router.get('/join/:gameId', (req, res) => {
         res.render('playGame', {
             title: 'Play Game',
             gameId: gameId,
-            gameServerAddress: 'TODO'
+            gameServerAddress: game.serverAddress
         });
     });
     // TODO: 

@@ -23,6 +23,7 @@ const MongoDB = require('./src/MongoDB');
 const passport = require('passport');
 const expressSession = require('express-session');
 const MongoStore = require('connect-mongo')(expressSession);
+const serverIP = require('./src/util/serverIP');
 
 const app = express();
 const maxCookieAge = 2628000000;    // TODO: Check this.
@@ -100,22 +101,30 @@ app.use(passport.session());
 app.use(flash());
 
 app.start = (callback) => {
-    mongoDB.connect((error) => {
+    serverIP((error, externalIP) => {
         if (error) {
             throw error;
         }
 
-        authentication(mongoDB);
+        app.locals.externalIP = externalIP;
 
-        app.use((req, res, next) => {
-            req.db = mongoDB;
-            next();
+        mongoDB.connect((error) => {
+            if (error) {
+                throw error;
+            }
+
+            authentication(mongoDB);
+
+            app.use((req, res, next) => {
+                req.db = mongoDB;
+                next();
+            });
+
+            app.setRouting();
+            app.setErrorHandling();
+
+            callback(mongoDB);
         });
-
-        app.setRouting();
-        app.setErrorHandling();
-
-        callback(mongoDB);
     });
 };
 

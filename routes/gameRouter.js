@@ -12,29 +12,60 @@ router.get('/', (req, res) => {
 
 });
 
-router.get('/newGame', (req, res) => {
+router.get('/create', (req, res) => {
     if (!req.user) {
         return res.send(httpStatus.UNAUTHORIZED);
     }
 
-    game(req.db, (error, newGame) => {
+    gameServer({
+        externalIPAddress: req.app.locals.externalIP
+    }, (error, server) => {
         if (error) {
             return res.send(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        console.info(`Game id: ${newGame._id}`);
+        game(req.db, (error, newGame) => {
+            if (error) {
+                return res.send(httpStatus.INTERNAL_SERVER_ERROR);
+            }
 
-        const server = gameServer(newGame);
+            server.game = newGame;
 
-        res.render('newGame', {
-            title: 'Create Game',
-            gameId: newGame._id,
-            gameServerAddress: `${server.address.address}:${server.address.port}`
+            console.info(`Game id: ${newGame._id}`);
+
+            res.render('newGame', {
+                title: 'Create Game',
+                user: req.user,
+                gameId: newGame._id,
+                gameServerAddress: `${server.address}`
+            });
         });
     });
 });
 
-router.get('/joinGame/:gameId', (req, res) => {
+router.get('/join', (req, res) => {
+    // Authorization is irrelevant...
+    res.render('joinGame', {
+        title: 'Join Game',
+        user: req.user,
+    });
+});
+
+router.post('/join', (req, res) => {
+    //req.checkBody('gameId', 'no game id specified').notEmpty();
+    //req.sanitize('gameId').escape().trim();
+
+    //const errors = req.validationErrors();
+    const errors = null;
+
+    if (errors) {
+        return res.send(httpStatus.BAD_REQUEST);
+    }
+
+    res.redirect(`/game/join/${req.body.gameId}`);
+});
+
+router.get('/join/:gameId', (req, res) => {
     // Authorization is irrelevant...
     const gameId = req.params.gameId;
 
@@ -43,8 +74,13 @@ router.get('/joinGame/:gameId', (req, res) => {
             return res.send(httpStatus.NOT_FOUND);
         }
 
+        if (game) {
+            // TODO: Not found.
+        }
+
         res.render('playGame', {
             title: 'Play Game',
+            user: req.user,
             gameId: gameId,
             gameServerAddress: 'TODO'
         });

@@ -7,7 +7,7 @@ module.exports = (callback) => {
     const getIP = externalIP({
         replace: true,
         services: ['http://ifconfig.co/x-real-ip', 'http://ifconfig.io/ip'],
-        timeout: 600,
+        timeout: 1000,
         getIP: 'parallel'
     });
     

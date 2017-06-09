@@ -20,6 +20,7 @@ router.get('/', (req, res) => {
 
         res.render('question', {
             title: 'Question',
+            user: req.user,
             number: 1,
             of: 4,
             text: question.text,
@@ -34,15 +35,16 @@ router.get('/add', (req, res) => {
     }
 
     res.render('addQuestion', {
-        title: 'Add Question'
+        title: 'Add Question',
+        user: req.user
     });
 });
 
 router.post('/add', (req, res, next) => {
     // TODO: Stop hard-coding this.
-    req.user = {
-        _id: new ObjectId('59228a6b0f13d25aa824c09f')
-    };
+    // req.user = {
+    //     _id: new ObjectId('59228a6b0f13d25aa824c09f')
+    // };
 
     if (!req.user) { 
         return res.send(httpStatus.UNAUTHORIZED); 

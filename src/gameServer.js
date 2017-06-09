@@ -4,7 +4,7 @@
 const net = require('net');
 
 
-function gameServer(game, options, done) {
+function gameServer(options, done) {
     const externalIPAddress = options.externalIPAddress || 'localhost';
     const clients = [];
 
@@ -41,7 +41,8 @@ function gameServer(game, options, done) {
         console.info(`Server listening on ${server.address().address} ${server.address().port}`);
 
         done(null, {
-            address: `${externalIPAddress}:${server.port}`,
+            address: `${externalIPAddress}:${server.address().port}`,
+            game: null,
             close() {
                 server.close();
             }

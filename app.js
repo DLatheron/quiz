@@ -99,6 +99,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 // flash - no not that flash
 app.use(flash());
+// TODO: CSRF token.
+app.use((req, res, next) => {
+    res.locals.req = req;
+    res.locals.res = res;
+    next();
+});
 
 app.start = (callback) => {
     serverIP((error, externalIP) => {

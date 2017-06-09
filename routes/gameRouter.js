@@ -35,7 +35,6 @@ router.get('/create', (req, res) => {
 
             res.render('newGame', {
                 title: 'Create Game',
-                user: req.user,
                 gameId: newGame._id,
                 gameServerAddress: `${server.address}`
             });
@@ -46,8 +45,7 @@ router.get('/create', (req, res) => {
 router.get('/join', (req, res) => {
     // Authorization is irrelevant...
     res.render('joinGame', {
-        title: 'Join Game',
-        user: req.user,
+        title: 'Join Game'
     });
 });
 
@@ -80,7 +78,6 @@ router.get('/join/:gameId', (req, res) => {
 
         res.render('playGame', {
             title: 'Play Game',
-            user: req.user,
             gameId: gameId,
             gameServerAddress: 'TODO'
         });

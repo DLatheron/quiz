@@ -22,7 +22,6 @@ router.get('/', (req, res) => {
             }, (error, updatedQuestions) => {
                 res.render('questionInventory', {
                     title: 'Question Inventory',
-                    user: req.user,
                     inventory: updatedQuestions,
                     moment: moment,
                     timeFormat: 'h:mma, D MMM YYYY z'

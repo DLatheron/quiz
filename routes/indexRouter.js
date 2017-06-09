@@ -54,8 +54,8 @@ router.post('/register', passport.authenticate('register', {
 // GET home page.
 router.get('/home', isAuthenticated, function(req, res) {
     res.render('index', { 
-        title: 'Quiz',
-        user: req.user });
+        title: 'Quiz'
+    });
 });
 
 

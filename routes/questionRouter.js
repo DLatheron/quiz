@@ -20,7 +20,6 @@ router.get('/', (req, res) => {
 
         res.render('question', {
             title: 'Question',
-            user: req.user,
             number: 1,
             of: 4,
             text: question.text,
@@ -35,8 +34,7 @@ router.get('/add', (req, res) => {
     }
 
     res.render('addQuestion', {
-        title: 'Add Question',
-        user: req.user
+        title: 'Add Question'
     });
 });
 

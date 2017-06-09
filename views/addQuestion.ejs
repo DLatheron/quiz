@@ -6,6 +6,7 @@
             <h1 class='text-center question-title'>Add Question</h1>
             <div class='account-wall'>
                 <form class='form-addQuestion', action='/question/add', method='POST'>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <input type='text' name='text' class='form-control' placeholder='Question' required autofocus='true' />
                     <input type='text' name='answers[0]' class='form-control' placeholder='Correct Answer' required />
                     <input type='text' name='answers[1]' class='form-control' placeholder='Wrong Answer' required />

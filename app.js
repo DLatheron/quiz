@@ -24,6 +24,7 @@ const passport = require('passport');
 const expressSession = require('express-session');
 const MongoStore = require('connect-mongo')(expressSession);
 const serverIP = require('./src/util/serverIP');
+const csurf = require('csurf');
 
 const app = express();
 const maxCookieAge = 2628000000;    // TODO: Check this.
@@ -74,6 +75,14 @@ app.setErrorHandling = function() {
         next(err);
     });
 
+    app.use((err, req, res, next) => {
+        if (err && err.code !== 'EBADCSRFTOKEN') {
+            return next(err);
+        }
+        res.status(403);
+        res.send('Forbidden (403) - invalid CSRF token.');
+    });
+
     // error handler
     app.use(function (err, req, res, next) {
         // set locals, only providing error in development
@@ -103,6 +112,13 @@ app.use(flash());
 app.use((req, res, next) => {
     res.locals.req = req;
     res.locals.res = res;
+    next();
+});
+app.use(csurf());
+app.use((req, res, next) => {
+    if (req.csrfToken) {
+        res.locals.csrfToken = req.csrfToken();
+    }
     next();
 });
 

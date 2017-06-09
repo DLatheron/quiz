@@ -9,6 +9,7 @@
                     class='profile-img'
                     src='https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120' />
                 <form class='form-signin', action='/login', method='POST'>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <input type='text' name='username' class='form-control' placeholder='Email Address' required='true' autofocus='true' />
                     <input type='password' name='password' class='form-control' placeholder='Password' required='true' />
                     <button class='btn btn-lg btn-primary btn-block' type='submit'>Login</button>

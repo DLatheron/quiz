@@ -48,13 +48,14 @@ router.post('/add', (req, res, next) => {
         return res.send(httpStatus.UNAUTHORIZED); 
     }
 
-    req.checkBody('text', 'question text required').notEmpty();
-    req.checkBody('answers', 'answers required').notEmpty();
+    //req.checkBody('text', 'question text required').notEmpty();
+    //req.checkBody('answers', 'answers required').notEmpty();
 
-    req.sanitize('text').escape();
-    req.sanitize('text').trim();
+    //req.sanitize('text').escape();
+    //req.sanitize('text').trim();
 
-    const errors = req.validationErrors();
+    //const errors = req.validationErrors();
+    const errors = null;
 
     if (errors) {
         return res.send(httpStatus.BAD_REQUEST);

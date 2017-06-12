@@ -43,3 +43,7 @@ obj
 
 # Other
 .DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+Database/

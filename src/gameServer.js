@@ -1,47 +1,55 @@
 /* globals require, module */
 'use strict';
 
-const net = require('net');
+const ws = require('nodejs-websocket');
 
 
 function gameServer(options, done) {
-    const externalIPAddress = options.externalIPAddress || 'localhost';
-    const clients = [];
+    let externalIPAddress = options.externalIPAddress || 'localhost';
+    let server = {};
 
     function broadcast(message, sender) {
-        clients.forEach((client) => {
+        server.connections.forEach((client) => {
             if (client === sender) {
                 return;
             }
-            client.write(message);
+            client.sendText(message);
         });
         console.log(message);
     }
 
-    const server = net.createServer((socket) => {
-        socket.name = socket.remoteAddress + ':' + socket.remotePort;
+    function buildAddress(ipAddress, port) {
+        return `${externalIPAddress}:${port}`;
+    }    
 
-        clients.push(socket);
+    server = ws.createServer({ /* secure: true */ }, (connection) => {
+        connection.name = buildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
 
-        socket.write(`Welcome ${socket.name}\n`);
-        broadcast(`${socket.name} joined the server\n`, socket);
+        connection.sendText(`Welcome ${connection.name}\n`);
+        broadcast(`${connection.name} joined the server\n`, connection);
 
-        socket.on('data', (data) => {
-            broadcast(`${socket.name}> ${data}`, socket);
+        connection.on('text', (str) => {
+            broadcast(`${connection.name}> ${str}`, connection);
         });
 
-        socket.on('end', () => {
-            clients.splice(clients.indexOf(socket), 1);
-            broadcast(`${socket.name} left the server\n`);
+        connection.on('close', (code, reason) => {
+            broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
         });
     });
 
     server.on('error', done);
     server.on('listening', () => {
-        console.info(`Server listening on ${server.address().address} ${server.address().port}`);
+        const port = server.socket.address().port;
+
+        // TODO: Force externalIPAddress to localhost to allow work on the train.
+        externalIPAddress = 'localhost';
+
+        console.info(`Server listening on ${buildAddress(externalIPAddress, port)}`);
 
         done(null, {
-            address: `${externalIPAddress}:${server.address().port}`,
+            address: buildAddress(externalIPAddress, port),
+            ipAddress: externalIPAddress,            
+            port: port,
             game: null,
             close() {
                 server.close();
@@ -49,7 +57,7 @@ function gameServer(options, done) {
         });
     });
 
-    server.listen();
+    server.listen(0);
 }
 
 

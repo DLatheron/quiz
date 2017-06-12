@@ -18,6 +18,15 @@ module.exports = function(grunt) {
                 }
             }
         },
+        mocha_istanbul: {
+            coverage: {
+                src: 'test', // the folder, not the files,
+                options: {
+                    mask: '*.js',
+                    reportFormats: ['html', 'clover']
+                }
+            }
+        },        
         jshint: {
             uses_defaults: {
                 src: ['src/**/*.js', 'test/**/*.js']
@@ -38,6 +47,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-mocha-cli');
+    grunt.loadNpmTasks('grunt-mocha-istanbul');
 
     grunt.registerTask('test', ['jshint', 'mochacli:test']);
+    grunt.registerTask('coverage', ['test', 'mocha_istanbul']);
 };

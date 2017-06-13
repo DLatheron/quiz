@@ -38,6 +38,7 @@ router.get('/create', (req, res) => {
             res.render('newGame', {
                 title: 'Create Game',
                 gameId: newGame._id,
+                gameServerPort: server.port,
                 gameServerAddress: `${server.address}`
             });
         });

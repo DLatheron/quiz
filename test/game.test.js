@@ -196,10 +196,7 @@ describe('#game', () => {
                 assert.strictEqual(gameUnderTest.numPlayers, 1);
             });
 
-            it('should return false if a player.id is added more than once', () => {
-
-            });
-
+            it('should return false if a player.id is added more than once');
             it('should rnot add the player if the player.id added more than once');
 
             context('with a full game', () => {

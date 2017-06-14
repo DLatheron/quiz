@@ -2,7 +2,7 @@
 'use strict';
 
 const assert = require('assert');
-const netEvents = require('../../src/util/netEvents');
+const NetEvents = require('../../src/util/netEvents');
 const sinon = require('sinon');
 
 describe('#netEvents', () => {
@@ -25,7 +25,7 @@ describe('#netEvents', () => {
 
     describe('#splitPhrases', () => {
         beforeEach(() => {
-            netEventsUnderTest = netEvents(fakeConnection);
+            netEventsUnderTest = new NetEvents(fakeConnection);
         });
 
         it('should split phrases by phrase separators', () => {
@@ -41,6 +41,10 @@ describe('#netEvents', () => {
     });
 
     describe('#splitWords', () => {
+        beforeEach(() => {
+            netEventsUnderTest = new NetEvents(fakeConnection);
+        });
+
         it('should split words by word separators', () => {
             assert.deepStrictEqual(
                 netEventsUnderTest.splitWords('   HELLO this is  a test\tof word  parsing '),
@@ -59,6 +63,67 @@ describe('#netEvents', () => {
     });
 
     describe('#parse', () => {
-        it('should call the command associated with the first word in each phrase');
+        beforeEach(() => {
+            netEventsUnderTest = new NetEvents(fakeConnection);
+        });
+
+        it('should call splitPhrases', () => {
+            const stringToParse = 'A command string';
+
+            sandbox.mock(netEventsUnderTest)
+                .expects('splitPhrases')
+                .once()
+                .withExactArgs(stringToParse)
+                .returns([ stringToParse ]);
+
+            netEventsUnderTest.parse(stringToParse);
+        });
+
+        it('should call splitWords on each split phrase', () => {
+            const stringToParse = 'Command 1; Command 2';
+            const splitWordsMock = sandbox.mock(netEventsUnderTest);
+
+            splitWordsMock.expects('splitWords')
+                .once()
+                .withExactArgs('Command 1')
+                .returns(['Command', '1']);
+            splitWordsMock.expects('splitWords')
+                .once()
+                .withExactArgs('Command 2')
+                .returns(['Command', '2']);
+
+            netEventsUnderTest.parse(stringToParse);
+        });
+
+        it('should generate events based on the first word of each phrase', () => {
+            const stringToParse = 'Command1; Command2; Command3';
+            const eventMock = sandbox.mock(netEventsUnderTest);
+
+            eventMock.expects('emit')
+                .once()
+                .withArgs('Command1');
+            eventMock.expects('emit')
+                .once()
+                .withArgs('Command2');
+            eventMock.expects('emit')
+                .once()
+                .withArgs('Command3');
+
+            netEventsUnderTest.parse(stringToParse);
+        });
+
+        it('should pass arguments to each event', () => {
+            const stringToParse = 'Command1 arguments; Command2 otherArgument1 otherArgument2';
+            const eventMock = sandbox.mock(netEventsUnderTest);
+
+            eventMock.expects('emit')
+                .once()
+                .withExactArgs('Command1', 'arguments');
+            eventMock.expects('emit')
+                .once()
+                .withExactArgs('Command2', 'otherArgument1', 'otherArgument2');
+
+            netEventsUnderTest.parse(stringToParse);
+        });        
     });
 });

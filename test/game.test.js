@@ -73,8 +73,8 @@ describe('#game', () => {
         });
     });
 
-    describe('#_id', (done) => {
-        it('should check that the game can be created in the database', () => {
+    describe('#_id', () => {
+        it('should check that the game can be created in the database', (done) => {
             sandbox.mock(fakeDb).expects('newGame').once().yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 

@@ -1,36 +1,36 @@
-/* globals module */
+/* globals require, module */
 'use strict';
 
-function netEvents(connection) {
+const EventEmitter = require('events');
 
-    function splitPhrases(str) {
-        return str.split(/\s*;\s*/);
-    }
+class NetEvents extends EventEmitter {
+    constructor(connection) {
+        super();
 
-    function splitWords(str) {
-        return str.split(/\s*\s/);        
-    }
-
-    function parse(str) {
-        splitPhrases(str).forEach((phrase) => {
-            const words = splitWords(phrase);
-
-            if (words.length >= 1) {
-                console.log(words[0]);
-            }
+        // TODO: Make a function call.
+        connection.on('text', (text) => {
+            this.parse(text);
         });
     }
 
-    connection.on('text', (text) => {
-        parse(text);
-    });
+    splitPhrases(str) {
+        return str.split(/\s*;\s*/);
+    }
 
-    return {
-        splitPhrases,
-        splitWords,
-        parse
-    };
+    splitWords(str) {
+        return str.match(/\S+/g);        
+    }
+
+    parse(str) {
+        this.splitPhrases(str).forEach((phrase) => {
+            const words = this.splitWords(phrase);
+
+            if (words.length >= 1) {
+                this.emit.apply(this, words);
+            }
+        });
+    }
 }
 
 
-module.exports = netEvents;
+module.exports = NetEvents;

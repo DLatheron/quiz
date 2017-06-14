@@ -15,6 +15,8 @@ describe('#netEvents', () => {
         emitText(str) {
             this.emit('text', str);
         }
+
+        on() {}
     }
 
     let sandbox;
@@ -32,6 +34,69 @@ describe('#netEvents', () => {
     afterEach(() => {
         sandbox.verify();
         sandbox.restore();
+    });
+
+    describe('#add', () => {
+        it('should add the connection', () => {
+            netEventsUnderTest.add(fakeConnection);
+            
+            assert.deepStrictEqual(netEventsUnderTest.connections[0], fakeConnection);
+        });
+
+        it('should return true if the connection was added', () => {
+            assert.strictEqual(netEventsUnderTest.add(fakeConnection), true);
+        });
+
+        it('should register a listener on the connection', () => {
+            sandbox.mock(fakeConnection)
+                .expects('on')
+                .once()
+                .withExactArgs('text', sinon.match.func);
+
+            netEventsUnderTest.add(fakeConnection);
+        });
+
+        it('should not add a connection if it has already been added', () => {
+            netEventsUnderTest.add(fakeConnection);
+            netEventsUnderTest.add(fakeConnection);
+
+            assert.strictEqual(netEventsUnderTest.connections.length, 1);
+        });
+
+        it('should return false if the connection was not added', () => {
+            netEventsUnderTest.add(fakeConnection);
+            assert.strictEqual(netEventsUnderTest.add(fakeConnection), false);
+        });
+    });
+
+    describe('#remove', () => {
+        let fakeConnection2 = new FakeConnection();
+        let fakeConnection3 = new FakeConnection();
+        it('should remove the connection', () => {
+            netEventsUnderTest.add(fakeConnection);
+            netEventsUnderTest.add(fakeConnection2);
+            netEventsUnderTest.add(fakeConnection3);
+
+            netEventsUnderTest.remove(fakeConnection2);
+
+            assert.deepStrictEqual(netEventsUnderTest.connections[0], fakeConnection);
+            assert.deepStrictEqual(netEventsUnderTest.connections[1], fakeConnection2);
+            assert.strictEqual(netEventsUnderTest.connections.length, 2);
+        });
+
+        it('should return true if the connection was removed', () => {
+            netEventsUnderTest.add(fakeConnection);
+            netEventsUnderTest.add(fakeConnection2);
+            netEventsUnderTest.add(fakeConnection3);
+
+            assert.strictEqual(netEventsUnderTest.remove(fakeConnection2), true);
+        });
+
+        it('should unregister the listener on the connection', () => {
+            assert.fail('here');
+        });
+        it('should not remove the connection if it has not been added');
+        it('should return false if the connection was not removed');
     });
 
     describe('#splitPhrases', () => {
@@ -127,7 +192,7 @@ describe('#netEvents', () => {
     });
 
     describe('on connection text event', () => {
-        it('should call parse on the received data', () => {
+        it.skip('should call parse on the received data', () => {
             const receivedMsg = 'Command argument otherArgument';
 
             sandbox.mock(netEventsUnderTest)

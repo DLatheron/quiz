@@ -2,10 +2,21 @@
 'use strict';
 
 const assert = require('assert');
+const EventEmitter = require('events');
 const NetEvents = require('../../src/util/netEvents');
 const sinon = require('sinon');
 
 describe('#netEvents', () => {
+    class FakeConnection extends EventEmitter {
+        constructor() {
+            super();
+        }
+
+        emitText(str) {
+            this.emit('text', str);
+        }
+    }
+
     let sandbox;
     let netEventsUnderTest;
     let fakeConnection;
@@ -13,9 +24,9 @@ describe('#netEvents', () => {
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
 
-        fakeConnection = {
-            on: () => {}
-        };
+        fakeConnection = new FakeConnection();
+
+        netEventsUnderTest = new NetEvents(fakeConnection);
     });
 
     afterEach(() => {
@@ -24,10 +35,6 @@ describe('#netEvents', () => {
     });
 
     describe('#splitPhrases', () => {
-        beforeEach(() => {
-            netEventsUnderTest = new NetEvents(fakeConnection);
-        });
-
         it('should split phrases by phrase separators', () => {
             assert.deepStrictEqual(
                 netEventsUnderTest.splitPhrases('HELLO;SET param=12;MOVE left'),
@@ -41,10 +48,6 @@ describe('#netEvents', () => {
     });
 
     describe('#splitWords', () => {
-        beforeEach(() => {
-            netEventsUnderTest = new NetEvents(fakeConnection);
-        });
-
         it('should split words by word separators', () => {
             assert.deepStrictEqual(
                 netEventsUnderTest.splitWords('   HELLO this is  a test\tof word  parsing '),
@@ -63,10 +66,6 @@ describe('#netEvents', () => {
     });
 
     describe('#parse', () => {
-        beforeEach(() => {
-            netEventsUnderTest = new NetEvents(fakeConnection);
-        });
-
         it('should call splitPhrases', () => {
             const stringToParse = 'A command string';
 
@@ -127,7 +126,16 @@ describe('#netEvents', () => {
         });        
     });
 
-    describe('connection receiving a message', () => {
-        it('should call each parse the received data');
+    describe('on connection text event', () => {
+        it('should call parse on the received data', () => {
+            const receivedMsg = 'Command argument otherArgument';
+
+            sandbox.mock(netEventsUnderTest)
+                .expects('parse')
+                .once()
+                .withExactArgs(receivedMsg);
+
+            fakeConnection.emitText(receivedMsg);
+        });
     });
 });

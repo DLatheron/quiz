@@ -9,7 +9,9 @@ class NetEvents extends EventEmitter {
 
         this.connection = connection;
 
-        connection.on('text', this.parse);
+        connection.on('text', (text) => {
+            this.parse(text);
+        });
     }
 
     splitPhrases(str) {

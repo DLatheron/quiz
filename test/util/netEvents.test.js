@@ -126,4 +126,8 @@ describe('#netEvents', () => {
             netEventsUnderTest.parse(stringToParse);
         });        
     });
+
+    describe('connection receiving a message', () => {
+        it('should call each parse the received data');
+    });
 });

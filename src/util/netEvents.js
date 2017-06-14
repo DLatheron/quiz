@@ -7,10 +7,9 @@ class NetEvents extends EventEmitter {
     constructor(connection) {
         super();
 
-        // TODO: Make a function call.
-        connection.on('text', (text) => {
-            this.parse(text);
-        });
+        this.connection = connection;
+
+        connection.on('text', this.parse);
     }
 
     splitPhrases(str) {
@@ -26,7 +25,7 @@ class NetEvents extends EventEmitter {
             const words = this.splitWords(phrase);
 
             if (words.length >= 1) {
-                this.emit.apply(this, words);
+                this.emit.apply(this.connection, words);
             }
         });
     }

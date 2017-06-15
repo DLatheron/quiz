@@ -70,39 +70,55 @@ describe('#netEvents', () => {
     });
 
     describe('#remove', () => {
-        let fakeConnection2 = new FakeConnection();
-        let fakeConnection3 = new FakeConnection();
-        it('should remove the connection', () => {
-            netEventsUnderTest.add(fakeConnection);
-            netEventsUnderTest.add(fakeConnection2);
-            netEventsUnderTest.add(fakeConnection3);
+        let fakeConnectionToRemove = new FakeConnection();
+        let fakeConnectionOther = new FakeConnection();
+        let fakeConnectionNotAdded = new FakeConnection();
 
-            netEventsUnderTest.remove(fakeConnection2);
+        beforeEach(() => {
+            netEventsUnderTest.add(fakeConnection);
+            netEventsUnderTest.add(fakeConnectionToRemove);
+            netEventsUnderTest.add(fakeConnectionOther);
+        });
+        
+        it('should remove the connection', () => {
+
+            netEventsUnderTest.remove(fakeConnectionToRemove);
 
             assert.deepStrictEqual(netEventsUnderTest.connections[0], fakeConnection);
-            assert.deepStrictEqual(netEventsUnderTest.connections[1], fakeConnection2);
+            assert.deepStrictEqual(netEventsUnderTest.connections[1], fakeConnectionToRemove);
             assert.strictEqual(netEventsUnderTest.connections.length, 2);
         });
 
         it('should return true if the connection was removed', () => {
-            netEventsUnderTest.add(fakeConnection);
-            netEventsUnderTest.add(fakeConnection2);
-            netEventsUnderTest.add(fakeConnection3);
-
-            assert.strictEqual(netEventsUnderTest.remove(fakeConnection2), true);
+            assert.strictEqual(netEventsUnderTest.remove(fakeConnectionToRemove), true);
         });
 
         it('should unregister the listener on the connection', () => {
-            assert.fail('here');
+            sandbox.mock(fakeConnectionToRemove)
+                .expects('removeListener')
+                .once()
+                .withExactArgs('text', sinon.match.func);
+
+            netEventsUnderTest.remove(fakeConnectionToRemove);
         });
-        it('should not remove the connection if it has not been added');
-        it('should return false if the connection was not removed');
+
+        it('should not remove the connection if it has not been added', () => {
+            netEventsUnderTest.remove(fakeConnectionNotAdded);
+
+            assert.strictEqual(netEventsUnderTest.connections.length, 3);
+        });
+
+        it('should return false if the connection was not removed', () => {
+            assert.strictEqual(netEventsUnderTest.remove(fakeConnectionNotAdded), false);
+        });
     });
 
     describe('#splitPhrases', () => {
         it('should split phrases by phrase separators', () => {
+            const stringToParse = 'HELLO;SET param=12;MOVE left';
+
             assert.deepStrictEqual(
-                netEventsUnderTest.splitPhrases('HELLO;SET param=12;MOVE left'),
+                netEventsUnderTest.splitPhrases(stringToParse),
                 [
                     'HELLO',
                     'SET param=12',
@@ -114,8 +130,10 @@ describe('#netEvents', () => {
 
     describe('#splitWords', () => {
         it('should split words by word separators', () => {
+            const stringToParse = '   HELLO this is  a test\tof word  parsing ';
+
             assert.deepStrictEqual(
-                netEventsUnderTest.splitWords('   HELLO this is  a test\tof word  parsing '),
+                netEventsUnderTest.splitWords(stringToParse),
                 [
                     'HELLO',
                     'this',
@@ -125,6 +143,30 @@ describe('#netEvents', () => {
                     'of',
                     'word',
                     'parsing'
+                ]
+            );
+        });
+
+        it('should respect single-quoted strings as single parameters', () => {
+            const stringToParse = 'HELLO \'A single-quoted string\'';
+
+            assert.deepStrictEqual(
+                netEventsUnderTest.splitWords(stringToParse),
+                [
+                    'HELLO',
+                    'A single-quoted string'
+                ]
+            );
+        });
+
+        it.skip('should respect double-quoted strings as single parameters', () => {
+            const stringToParse = 'HELLO "A double-quoted string"';
+
+            assert.deepStrictEqual(
+                netEventsUnderTest.splitWords(stringToParse),
+                [
+                    'HELLO',
+                    'A double-quoted string'
                 ]
             );
         });
@@ -188,7 +230,18 @@ describe('#netEvents', () => {
                 .withExactArgs('Command2', 'otherArgument1', 'otherArgument2');
 
             netEventsUnderTest.parse(stringToParse);
-        });        
+        });   
+
+        it('should call commands with the context of the connection', () => {
+            const stringToParse = 'Command';
+
+            sandbox.mock(netEventsUnderTest)
+                .expects('emit')
+                .once()
+                .on(fakeConnection);
+
+            netEventsUnderTest.parse(stringToParse);
+        });   
     });
 
     describe('on connection text event', () => {

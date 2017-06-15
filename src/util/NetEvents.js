@@ -21,9 +21,7 @@ class NetEvents extends EventEmitter {
 
     add(connection) {
         if (!this._connections.find((conn) => conn === connection)) {
-            connection.on('text', (text) => {
-                this.parse(text);
-            });
+            connection.on('text', this._connectionListener);
             this._connections.push(connection);
             return true;
         } else {
@@ -33,8 +31,9 @@ class NetEvents extends EventEmitter {
 
     remove(connection) {
         const index = this._connections.findIndex((conn) => conn === connection);
-        console.info(index);
+
         if (index !== -1) {
+            connection.removeListener('text', this._connectionListener);
             this._connections.splice(index, 1);
             return true;
         } else {
@@ -47,7 +46,19 @@ class NetEvents extends EventEmitter {
     }
 
     splitWords(str) {
-        return str.match(/\S+/g);        
+        // Match quoted string or individual words.
+        const regex = /'(.*)'|"(.*)"|(\S+)/g;
+
+        let words = [];
+        let match = regex.exec(str);
+
+        while (match !== null) {
+            const word = match[1] || match[2] || match[3];
+            words.push(word);
+            match = regex.exec(str);
+        }        
+
+        return words;
     }
 
     parse(str) {
@@ -58,6 +69,10 @@ class NetEvents extends EventEmitter {
                 this.emit.apply(this.connection, words);
             }
         });
+    }
+
+    _connectionListener(text) {
+        this.parse(text);
     }
 }
 

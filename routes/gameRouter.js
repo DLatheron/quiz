@@ -17,7 +17,7 @@ router.get('/create', (req, res) => {
         return res.send(httpStatus.UNAUTHORIZED);
     }
 
-    gameServer({
+    const server = gameServer({
         externalIPAddress: req.app.locals.externalIP
     }, (error, server) => {
         if (error) {
@@ -41,6 +41,10 @@ router.get('/create', (req, res) => {
                 gameServerPort: server.port,
                 gameServerAddress: `${server.address}`
             });
+        });
+
+        server.netEvents.on('Command', () => {
+            console.log(`Executing Command(${arguments})`);
         });
     });
 });

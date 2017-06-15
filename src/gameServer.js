@@ -1,12 +1,14 @@
 /* globals require, module */
 'use strict';
 
+const NetEvents = require('./util/NetEvents');
 const ws = require('nodejs-websocket');
 
 
 function gameServer(options, done) {
     let externalIPAddress = options.externalIPAddress || 'localhost';
     let server = {};
+    let netEvents = new NetEvents();
 
     function broadcast(message, sender) {
         server.connections.forEach((client) => {
@@ -28,12 +30,15 @@ function gameServer(options, done) {
         connection.sendText(`Welcome ${connection.name}\n`);
         broadcast(`${connection.name} joined the server\n`, connection);
 
+        netEvents.add(connection);
+
         connection.on('text', (str) => {
             broadcast(`${connection.name}> ${str}`, connection);
         });
 
         connection.on('close', (code, reason) => {
             broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
+            netEvents.remove(connection);
         });
     });
 
@@ -51,6 +56,7 @@ function gameServer(options, done) {
             ipAddress: externalIPAddress,            
             port: port,
             game: null,
+            netEvents,
             close() {
                 server.close();
             }

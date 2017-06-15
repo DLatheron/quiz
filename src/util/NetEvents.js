@@ -4,15 +4,10 @@
 const EventEmitter = require('events');
 
 class NetEvents extends EventEmitter {
-    constructor(connection) {
+    constructor() {
         super();
 
         this._connections = [];
-        this.connection = connection;
-
-        connection.on('text', (text) => {
-            this.parse(text);
-        });
     }
 
     get connections() {
@@ -21,8 +16,7 @@ class NetEvents extends EventEmitter {
 
     add(connection) {
         if (!this._connections.find((conn) => conn === connection)) {
-            connection.on('text', this._connectionListener);
-            this._connections.push(connection);
+            this._registerConnection(connection);
             return true;
         } else {
             return false;
@@ -33,8 +27,7 @@ class NetEvents extends EventEmitter {
         const index = this._connections.findIndex((conn) => conn === connection);
 
         if (index !== -1) {
-            connection.removeListener('text', this._connectionListener);
-            this._connections.splice(index, 1);
+            this._unregisterConnection(connection, index);
             return true;
         } else {
             return false;
@@ -53,6 +46,7 @@ class NetEvents extends EventEmitter {
         let match = regex.exec(str);
 
         while (match !== null) {
+            // Choose whichever matcher succeeds in extracting something.
             const word = match[1] || match[2] || match[3];
             words.push(word);
             match = regex.exec(str);
@@ -61,19 +55,30 @@ class NetEvents extends EventEmitter {
         return words;
     }
 
-    parse(str) {
+    parse(connection, str) {
         this.splitPhrases(str).forEach((phrase) => {
             const words = this.splitWords(phrase);
 
             if (words.length >= 1) {
-                this.emit.apply(this.connection, words);
+                this.emit.apply(connection, words);
             }
         });
     }
 
-    _connectionListener(text) {
-        this.parse(text);
+    _registerConnection(connection) {
+        connection._netEventListener = (text) => {
+            this.parse(connection, text);
+        };
+        connection.on('text', connection._netEventListener);
+        this._connections.push(connection);
     }
+
+    _unregisterConnection(connection, index) {
+        connection.removeListener('text', connection._netEventListener);
+        delete connection._netEventListener;
+        this._connections.splice(index, 1);
+        
+    }    
 }
 
 

@@ -85,7 +85,7 @@ describe('#netEvents', () => {
             netEventsUnderTest.remove(fakeConnectionToRemove);
 
             assert.deepStrictEqual(netEventsUnderTest.connections[0], fakeConnection);
-            assert.deepStrictEqual(netEventsUnderTest.connections[1], fakeConnectionToRemove);
+            assert.deepStrictEqual(netEventsUnderTest.connections[1], fakeConnectionOther);
             assert.strictEqual(netEventsUnderTest.connections.length, 2);
         });
 
@@ -182,7 +182,7 @@ describe('#netEvents', () => {
                 .withExactArgs(stringToParse)
                 .returns([ stringToParse ]);
 
-            netEventsUnderTest.parse(stringToParse);
+            netEventsUnderTest.parse(fakeConnection, stringToParse);
         });
 
         it('should call splitWords on each split phrase', () => {
@@ -198,7 +198,7 @@ describe('#netEvents', () => {
                 .withExactArgs('Command 2')
                 .returns(['Command', '2']);
 
-            netEventsUnderTest.parse(stringToParse);
+            netEventsUnderTest.parse(fakeConnection, stringToParse);
         });
 
         it('should generate events based on the first word of each phrase', () => {
@@ -215,7 +215,7 @@ describe('#netEvents', () => {
                 .once()
                 .withArgs('Command3');
 
-            netEventsUnderTest.parse(stringToParse);
+            netEventsUnderTest.parse(fakeConnection, stringToParse);
         });
 
         it('should pass arguments to each event', () => {
@@ -229,7 +229,7 @@ describe('#netEvents', () => {
                 .once()
                 .withExactArgs('Command2', 'otherArgument1', 'otherArgument2');
 
-            netEventsUnderTest.parse(stringToParse);
+            netEventsUnderTest.parse(fakeConnection, stringToParse);
         });   
 
         it('should call commands with the context of the connection', () => {
@@ -240,7 +240,7 @@ describe('#netEvents', () => {
                 .once()
                 .on(fakeConnection);
 
-            netEventsUnderTest.parse(stringToParse);
+            netEventsUnderTest.parse(fakeConnection, stringToParse);
         });   
     });
 

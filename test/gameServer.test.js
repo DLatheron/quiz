@@ -21,4 +21,6 @@ describe('#gameServer', () => {
     it('should callback when the server is listening');
     it('should report errors during start-up');
     it('should accept client connections');
+    it('should register a new client for network events');
+    it('should unregister a new client from network events');
 });

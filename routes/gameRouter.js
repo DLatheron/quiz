@@ -3,7 +3,7 @@
 
 const express = require('express');
 const game = require('../src/game');
-const gameServer = require('../src/gameServer');
+const GameServer = require('../src/GameServer');
 const httpStatus = require('http-status-codes');
 const router = express.Router();
 
@@ -17,9 +17,11 @@ router.get('/create', (req, res) => {
         return res.send(httpStatus.UNAUTHORIZED);
     }
 
-    const server = gameServer({
+    const server = new GameServer({
         externalIPAddress: req.app.locals.externalIP
-    }, (error, server) => {
+    });
+    
+    server.start((error) => {
         if (error) {
             return res.send(httpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -42,11 +44,27 @@ router.get('/create', (req, res) => {
                 gameServerAddress: `${server.address}`
             });
         });
+    });
 
-        // WHY DOES THIS NOT REGISTER CORRECTLY???
-        server.netEvents.on('Command', () => {
-            console.log(`Executing Command(${arguments})`);
-        });
+    server.netEvents.on('JOIN', (connection, gameIdToJoin) => {
+        console.log(`Connection ${connection.name} asked to JOIN(${gameIdToJoin})`);
+        if (!connection.gameState) {
+            if (gameIdToJoin === server.game._id) {
+                console.log(`Connection from ${connection.name} accepted`);
+                connection.gameState = 'joined';
+                server.broadcast(`JOINED ${connection.name}`);
+            } else {
+                console.error(`Connection from ${connection.name} rejected`);
+                connection.close();
+            }
+        } else {
+            console.warn(`Connection from ${connection.name} sent unexpected JOIN(${gameIdToJoin}) message`);
+        }
+    });
+
+    server.netEvents.on('LEAVE', (connection) => {
+        connection.close();
+        connection.gameState = 'exited';
     });
 });
 

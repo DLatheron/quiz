@@ -15,8 +15,6 @@ describe('#netEvents', () => {
         emitText(str) {
             this.emit('text', str);
         }
-
-        on() {}
     }
 
     let sandbox;
@@ -28,7 +26,7 @@ describe('#netEvents', () => {
 
         fakeConnection = new FakeConnection();
 
-        netEventsUnderTest = new NetEvents(fakeConnection);
+        netEventsUnderTest = new NetEvents();
     });
 
     afterEach(() => {
@@ -224,34 +222,42 @@ describe('#netEvents', () => {
 
             eventMock.expects('emit')
                 .once()
-                .withExactArgs('Command1', 'arguments');
+                .withExactArgs('Command1', fakeConnection, 'arguments');
             eventMock.expects('emit')
                 .once()
-                .withExactArgs('Command2', 'otherArgument1', 'otherArgument2');
-
-            netEventsUnderTest.parse(fakeConnection, stringToParse);
-        });   
-
-        it('should call commands with the context of the connection', () => {
-            const stringToParse = 'Command';
-
-            sandbox.mock(netEventsUnderTest)
-                .expects('emit')
-                .once()
-                .on(fakeConnection);
+                .withExactArgs('Command2', fakeConnection, 'otherArgument1', 'otherArgument2');
 
             netEventsUnderTest.parse(fakeConnection, stringToParse);
         });   
     });
 
     describe('on connection text event', () => {
-        it.skip('should call parse on the received data', () => {
+        it('should call parse on the received data', () => {
             const receivedMsg = 'Command argument otherArgument';
+
+            netEventsUnderTest.add(fakeConnection);
 
             sandbox.mock(netEventsUnderTest)
                 .expects('parse')
                 .once()
-                .withExactArgs(receivedMsg);
+                .withExactArgs(fakeConnection, receivedMsg);
+
+            fakeConnection.emitText(receivedMsg);
+        });
+    });
+
+    describe('events', () => {
+        it('should be raised on the NetEvents object', (done) => {
+            const receivedMsg = 'Command argument otherArgument';
+
+            netEventsUnderTest.add(fakeConnection);
+
+            netEventsUnderTest.on('Command', (connection, arg1, arg2) => {
+                assert.strictEqual(connection, fakeConnection);
+                assert.strictEqual(arg1, 'argument');
+                assert.strictEqual(arg2, 'otherArgument');
+                done();
+            });
 
             fakeConnection.emitText(receivedMsg);
         });

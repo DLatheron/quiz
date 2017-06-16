@@ -43,6 +43,7 @@ router.get('/create', (req, res) => {
             });
         });
 
+        // WHY DOES THIS NOT REGISTER CORRECTLY???
         server.netEvents.on('Command', () => {
             console.log(`Executing Command(${arguments})`);
         });

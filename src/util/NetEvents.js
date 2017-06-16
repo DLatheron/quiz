@@ -60,14 +60,17 @@ class NetEvents extends EventEmitter {
             const words = this.splitWords(phrase);
 
             if (words.length >= 1) {
-                this.emit.apply(connection, words);
+                // Insert the connection as the first command argument.
+                words.splice(1, 0, connection);
+                this.emit.apply(this, words);
             }
         });
     }
 
     _registerConnection(connection) {
+        const self = this;
         connection._netEventListener = (text) => {
-            this.parse(connection, text);
+            self.parse(connection, text);
         };
         connection.on('text', connection._netEventListener);
         this._connections.push(connection);

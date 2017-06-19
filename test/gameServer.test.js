@@ -29,7 +29,7 @@ describe('#GameServer', () => {
 
     describe('#broadcast', () => {
         it('should send a message to all connections');
-        it('should not send a message to an excluded connection')
+        it('should not send a message to an excluded connection');
     });
     it('should create a server');
     it('should callback when the server is listening');

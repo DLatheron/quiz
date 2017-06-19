@@ -3,10 +3,10 @@
 
 const assert = require('assert');
 const EventEmitter = require('events');
-const NetEvents = require('../../src/util/netEvents');
+const NetEvents = require('../../src/common/NetEvents');
 const sinon = require('sinon');
 
-describe('#netEvents', () => {
+describe('#NetEvents', () => {
     class FakeConnection extends EventEmitter {
         constructor() {
             super();

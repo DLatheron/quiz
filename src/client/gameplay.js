@@ -1,4 +1,3 @@
-/* globals WebSocket, serverAddress, gameId */
 'use strict';
 
 const wsMain = require('../../node_modules/json-websockets/lib/main');

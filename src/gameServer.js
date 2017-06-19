@@ -11,7 +11,7 @@ class GameServer {
         this.port = _.get(options, 'port') || undefined;
         this.netEvents = new NetEvents();
         this.server = ws.createServer({ /* secure: true */ }, (connection) => {
-            connection.name = this.buildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
+            connection.name = GameServer.BuildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
 
             connection.sendText(`Welcome ${connection.name}\n`);
             this.broadcast(`${connection.name} joined the server\n`, connection);
@@ -29,7 +29,7 @@ class GameServer {
         });
     }
 
-    static buildAddress(ipAddress, port) {
+    static BuildAddress(ipAddress, port) {
         return `${ipAddress}:${port}`;
     }     
 
@@ -37,7 +37,7 @@ class GameServer {
         this.server.on('listening', () => {
             this.port = this.server.socket.address().port;
 
-            const address = this.buildAddress(this.externalIPAddress, this.port);
+            const address = GameServer.BuildAddress(this.externalIPAddress, this.port);
         
             console.info(`Server listening on ${address}`);
 
@@ -45,6 +45,8 @@ class GameServer {
         });
         this.server.on('error', (error) => {
             console.error(`GameServer reported an error ${error}.`);
+
+            callback(error);
         });
 
         this.server.listen(this.port);

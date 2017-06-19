@@ -71,16 +71,30 @@ describe('#GameServer', () => {
             const expectedPort = 34691;
             
             assert.strictEqual(
-                GameServer.buildAddress(expectedAddress, expectedPort),
+                GameServer.BuildAddress(expectedAddress, expectedPort),
                 `${expectedAddress}:${expectedPort}`
             );
         });
     });
 
     describe('#start', () => {
-        it('should set the server listening', () => {
-            const expectedPort = 52683;
+        const expectedError = {
+            message: 'An error occurred'
+        };
+        const expectedPort = 52683;
+
+        let gameServer;
+
+        beforeEach(() => {
             gameServer = new GameServer({ port: expectedPort });
+            gameServer.server.socket = {
+                address: () => { 
+                    return { port: expectedPort }; 
+                }
+            };
+        });
+        
+        it('should set the server listening', () => {
             sandbox.mock(gameServer.server)
                 .expects('listen')
                 .once()
@@ -90,27 +104,86 @@ describe('#GameServer', () => {
         });
 
         it('should callback when the server starts listening', (done) => {
-            const expectedPort = 52683;
-            gameServer = new GameServer({ port: expectedPort });
             sandbox.mock(gameServer.server)
                 .expects('listen')
                 .once()
                 .withExactArgs(expectedPort);
-            sandbox.stub(gameServer.server, 'socket')
-                .returns({
-                    address: () => { 
-                        return { port: expectedPort }; 
-                    }
-                });
-            
             gameServer.start(done);
 
             gameServer.server.emit('listening');
         });
 
-        it('should report an error if there is a failure');
-        it('should register connections with the net events handler');
-        it('should deregister closed connections from the net events handler');
+        it('should report an error if there is a failure', (done) => {
+            sandbox.stub(gameServer.server, 'listen');
+
+            gameServer.start((error) => {
+                assert.strictEqual(error, expectedError);
+                done();
+            });
+
+            gameServer.server.emit('error', expectedError);
+        });
+    });
+
+    describe('when a client connects', () => {
+        const expectedPort = 52683;
+
+        let fakeConnection;
+        let fakeServer;
+        let createServerStub;
+        let gameServer;
+
+        beforeEach((done) => {
+            fakeConnection = {
+                on: () => {},
+                socket: {
+                    remoteAddress: '127.0.0.1',
+                    remotePort: 45298
+                },
+                sendText: () => {}
+            };
+
+            fakeServer = {
+                listen: () => {},
+                on: () => {}
+            };  
+
+            createServerStub = sandbox.stub(ws, 'createServer')
+                 .returns(fakeServer);
+
+            gameServer = new GameServer({ port: expectedPort });
+            gameServer.server.socket = {
+                address: () => { 
+                    return { port: expectedPort }; 
+                }
+            };
+
+            sandbox.stub(gameServer.server, 'on')
+                .withArgs('listening')
+                .yields();
+            sandbox.stub(gameServer, 'broadcast');            
+
+            gameServer.start(done);
+        });        
+        
+        it('should register connections with the net events handler', () => {
+            sandbox.mock(gameServer.netEvents)
+                .expects('add')
+                .once();
+            
+            createServerStub.yield(fakeConnection);
+        });
+
+        it('should deregister closed connections from the net events handler', () => {
+            sandbox.mock(gameServer.netEvents)
+                .expects('remove')
+                .once();
+            sandbox.stub(fakeConnection, 'on')
+                .withArgs('close')
+                .yields();
+
+            createServerStub.yield(fakeConnection);
+        });
     });
 
     describe('#stop', () => {

@@ -1,13 +1,14 @@
 /* globals require, module */
 'use strict';
 
-const NetEvents = require('./util/NetEvents');
+const NetEvents = require('./common/NetEvents');
 const ws = require('nodejs-websocket');
+const _ = require('lodash');
 
 class GameServer {
     constructor(options) {
-        this.externalIPAddress = options.externalIPAddress || 'localhost';
-        this.port = undefined;
+        this.externalIPAddress = _.get(options, 'externalIPAddress') || 'localhost';
+        this.port = _.get(options, 'port') || undefined;
         this.netEvents = new NetEvents();
         this.server = ws.createServer({ /* secure: true */ }, (connection) => {
             connection.name = this.buildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
@@ -28,7 +29,7 @@ class GameServer {
         });
     }
 
-    buildAddress(ipAddress, port) {
+    static buildAddress(ipAddress, port) {
         return `${ipAddress}:${port}`;
     }     
 
@@ -46,14 +47,14 @@ class GameServer {
             console.error(`GameServer reported an error ${error}.`);
         });
 
-        this.server.listen(0);
+        this.server.listen(this.port);
     }
 
     stop() {
         this.server.close();
     }
 
-    broadcast(message, sender = undefined) {
+    broadcast(message, sender) {
         this.server.connections.forEach((connection) => {
             if (connection === sender) { return; }
             connection.sendText(message);

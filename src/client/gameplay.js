@@ -1,26 +1,45 @@
+/* globals gameServerAddress, gameServerPort, gameId */
 'use strict';
 
-const wsMain = require('../../node_modules/json-websockets/lib/main');
+// const wsMain = require('../../node_modules/json-websockets/lib/main');
 
-const ws = wsMain.client({ host: 'localhost', port: 8080, verbose: true });
+// const ws = wsMain.client({ host: gameServerAddress, port: gameServerPort, verbose: true });
 
-ws.connect.on('connect', () => {
-    ws.send('hello', 'client here');
-});
-
-ws.connect.on('welcome', (id, callback) => {
-    callback(id);
-});
-
-// // Create WebSocket connection.
-// const socket = new WebSocket(`ws://${serverAddress}`);
-
-// // Connection opened
-// socket.addEventListener('open', function (event) {
-//     socket.send(`Hello ${gameId}`);
+// ws.connect.on('connect', () => {
+//     ws.send('hello', 'client here');
 // });
 
-// // Listen for messages
-// socket.addEventListener('message', function (event) {
-//     console.log('Message from server', event.data);
+// ws.connect.on('welcome', (id, callback) => {
+//     callback(id);
 // });
+
+const WebSocketClient = require('websocket').client;
+
+// Create WebSocket connection.
+const wsClient = new WebSocketClient();
+
+wsClient.on('connectFailed', (error) => {
+    console.log('Connect Error: ' + error.toString());
+});
+
+// Connected.
+wsClient.addEventListener('connect', (connection) => {
+    console.log('WebSocket Client Connected');
+    connection.on('error', (error) => {
+        console.log(`Connection Error: ${error.toString()}`);
+    });
+    connection.on('close', () => {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', (message) => {
+        if (message.type === 'utf8') {
+            console.log(`Received: '${message.utf8Data}'`);
+            // TODO: Process using netEvents.
+        }
+    });
+
+    wsClient.send(`JOIN ${gameId}`);
+});
+
+// Open the connection.
+wsClient.connect(`ws://${gameServerAddress}:${gameServerPort}`, 'echo-protocol');

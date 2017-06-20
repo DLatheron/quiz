@@ -41,7 +41,7 @@ router.get('/create', (req, res) => {
                 title: 'Create Game',
                 gameId: newGame._id,
                 gameServerPort: server.port,
-                gameServerAddress: `${server.address}`
+                gameServerAddress: `${server.externalIPAddress}`
             });
         });
     });
@@ -105,7 +105,8 @@ router.get('/join/:gameId', (req, res) => {
         res.render('playGame', {
             title: 'Play Game',
             gameId: gameId,
-            gameServerAddress: game.serverAddress
+            gameServerAddress: game.externalIPAddress,
+            gameServerPort: game.port
         });
     });
     // TODO: 

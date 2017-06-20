@@ -51,7 +51,7 @@ class GameServer {
             callback(error);
         });
 
-        this.server.listen(this.port);
+        this.server.listen(this.port || 0);
     }
 
     stop() {

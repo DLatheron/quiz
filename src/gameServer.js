@@ -5,6 +5,8 @@ const NetEvents = require('./common/NetEvents');
 const ws = require('nodejs-websocket');
 const _ = require('lodash');
 
+// TODO: Disable logging!!!
+
 class GameServer {
     constructor(options) {
         this.externalIPAddress = _.get(options, 'externalIPAddress') || 'localhost';
@@ -39,12 +41,12 @@ class GameServer {
 
             const address = GameServer.BuildAddress(this.externalIPAddress, this.port);
         
-            console.info(`Server listening on ${address}`);
+            this.log('info', `Server listening on ${address}`);
 
             callback(null);
         });
         this.server.on('error', (error) => {
-            console.error(`GameServer reported an error ${error}.`);
+            this.log('error', `GameServer reported an error ${error.toString()}.`);
 
             callback(error);
         });
@@ -66,71 +68,11 @@ class GameServer {
     send(connection, message) {
         connection.sendText(message);
     }
+
+    log(type) {
+        console[type].call(Array.prototype.slice.call(arguments, 1));
+    }
 }
-
-// function gameServer(options, done) {
-//     let externalIPAddress = options.externalIPAddress || 'localhost';
-//     let server = {};
-//     let netEvents = new NetEvents();
-
-//     function broadcast(message, sender) {
-//         server.connections.forEach((client) => {
-//             if (client === sender) {
-//                 return;
-//             }
-//             client.sendText(message);
-//         });
-//         console.log(message);
-//     }
-
-//     function buildAddress(ipAddress, port) {
-//         return `${externalIPAddress}:${port}`;
-//     }    
-
-//     server = ws.createServer({ /* secure: true */ }, (connection) => {
-//         connection.name = buildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
-
-//         connection.sendText(`Welcome ${connection.name}\n`);
-//         broadcast(`${connection.name} joined the server\n`, connection);
-
-//         netEvents.add(connection);
-
-//         connection.on('text', (str) => {
-//             broadcast(`${connection.name}> ${str}`, connection);
-//         });
-
-//         connection.on('close', (code, reason) => {
-//             broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
-//             netEvents.remove(connection);
-//         });
-//     });
-
-//     server.on('error', done);
-//     server.on('listening', () => {
-//         const port = server.socket.address().port;
-
-//         // TODO: Force externalIPAddress to localhost to allow work on the train.
-//         externalIPAddress = 'localhost';
-
-//         console.info(`Server listening on ${buildAddress(externalIPAddress, port)}`);
-
-//         done(null, {
-//             address: buildAddress(externalIPAddress, port),
-//             ipAddress: externalIPAddress,            
-//             port: port,
-//             game: null,
-//             netEvents,
-//             broadcast,
-//             close() {
-//                 server.close();
-//             }
-//         });
-//     });
-
-//     server.listen(0);
-
-//     return server;
-// }
 
 
 // module.exports = gameServer;

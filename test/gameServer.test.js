@@ -26,6 +26,7 @@ describe('#GameServer', () => {
     describe('#constructor', () => {
         it('should default the external IP address to localhost', () => {
             gameServer = new GameServer();
+            sandbox.stub(gameServer, 'log');
 
             assert.strictEqual(gameServer.externalIPAddress, 'localhost');
         });
@@ -33,12 +34,14 @@ describe('#GameServer', () => {
         it('should override the external IP address if supplied', () => {
             const expectedAddress = 'someIPAddressOrHost';
             gameServer = new GameServer({ externalIPAddress: expectedAddress });
+            sandbox.stub(gameServer, 'log');
 
             assert.strictEqual(gameServer.externalIPAddress, expectedAddress);
         });
 
         it('should default the port to 0', () => {
             gameServer = new GameServer();
+            sandbox.stub(gameServer, 'log');
 
             assert.strictEqual(gameServer.port, undefined);
         });
@@ -46,12 +49,14 @@ describe('#GameServer', () => {
         it('should override the port if supplied', () => {
             const expectedPort = 28432;
             gameServer = new GameServer({ port: expectedPort});
+            sandbox.stub(gameServer, 'log');
 
             assert.strictEqual(gameServer.port, expectedPort);
         });
 
         it('should create the net events handler', () => {
             gameServer = new GameServer();
+            sandbox.stub(gameServer, 'log');
 
             assert(gameServer.netEvents);
         });
@@ -62,6 +67,7 @@ describe('#GameServer', () => {
                 .once()
                 .withExactArgs(sinon.match.object, sinon.match.func);
             gameServer = new GameServer();
+            sandbox.stub(gameServer, 'log');
         });
     });
 
@@ -87,6 +93,7 @@ describe('#GameServer', () => {
 
         beforeEach(() => {
             gameServer = new GameServer({ port: expectedPort });
+            sandbox.stub(gameServer, 'log');
             gameServer.server.socket = {
                 address: () => { 
                     return { port: expectedPort }; 
@@ -152,6 +159,7 @@ describe('#GameServer', () => {
                  .returns(fakeServer);
 
             gameServer = new GameServer({ port: expectedPort });
+            sandbox.stub(gameServer, 'log');
             gameServer.server.socket = {
                 address: () => { 
                     return { port: expectedPort }; 
@@ -187,15 +195,75 @@ describe('#GameServer', () => {
     });
 
     describe('#stop', () => {
-        it('should close the server');
+        it('should close the server', () => {
+            const gameServer = new GameServer();
+
+            sandbox.mock(gameServer.server)
+                .expects('close')
+                .once();
+
+            gameServer.stop();
+        });
     });
 
     describe('#broadcast', () => {
-        it('should send a message to all connections');
-        it('should not send a message to an excluded connection');
+        const expectedMessage = 'This is a message';
+        let fakeConnections;
+        let gameServer;
+
+        beforeEach(() => {
+            gameServer = new GameServer();
+
+            fakeConnections = [
+                { sendText: () => {} },
+                { sendText: () => {} },
+                { sendText: () => {} },
+                { sendText: () => {} }
+            ];
+
+            gameServer.server.connections = fakeConnections;                
+        });
+
+        it('should send a message to all connections', () => {
+            fakeConnections.forEach((connection) => {
+            sandbox.mock(connection)
+                .expects('sendText')
+                .once()
+                .withExactArgs(expectedMessage);
+            });
+
+            gameServer.broadcast(expectedMessage);
+        });
+
+        it('should not send a message to an excluded connection', () => {
+            [0, 1, 3].forEach((index) => {
+                sandbox.mock(fakeConnections[index])
+                    .expects('sendText')
+                    .once()
+                    .withExactArgs(expectedMessage);
+            });
+
+            gameServer.broadcast(expectedMessage, fakeConnections[2]);            
+        });
     });
     
     describe('#send', () => {
-        it('should send a text message via the connection');
+        const expectedMessage = 'This is a message';
+        let fakeConnection;
+        let gameServer;
+
+        beforeEach(() => {
+            gameServer = new GameServer();
+            fakeConnection = { sendText: () => {} };
+        });
+        
+        it('should send a text message via the connection', () => {
+            sandbox.mock(fakeConnection)
+                .expects('sendText')
+                .once()
+                .withExactArgs(expectedMessage);
+
+            gameServer.send(fakeConnection, expectedMessage);
+        });
     });
 });

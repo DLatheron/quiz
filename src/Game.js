@@ -63,13 +63,14 @@ class Game {
             throw new Error('Unable to start game');
         }
 
-        this.status = 'lobby';
+        this.status = 'playing';
 
     }
 
-    stop() {
-        // TODO: Do whatever is necessary to stop the game.
-        this.status = 'ended';
+    stop(callback) {
+        this.status = 'stopped';
+
+        this.db.removeGame(this.gameId, callback);
     }
 
     get canStart() {
@@ -82,6 +83,9 @@ class Game {
 
     addPlayer(player) {
         if (this.players.length < this.maxPlayers) {
+            if (this.players.find((p) => p.id === player.id)) {
+                return false;
+            }
             this.players.push(player);
             return true;
         } else {

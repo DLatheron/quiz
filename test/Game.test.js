@@ -1,4 +1,4 @@
-/* globals require, describe, it, context, beforeEach, afterEach */
+/* globals require, describe, it, beforeEach, afterEach */
 'use strict';
 
 // Game
@@ -21,6 +21,10 @@ describe('#game', () => {
     const player1 = { 
         id: 'p1',
         name: 'Player 1'
+    };
+    const playerWithPlayer1sId = {
+        id: 'p1',
+        name: 'Player with the same id as Player 1'
     };
     const player2 = { 
         id: 'p2',
@@ -48,11 +52,12 @@ describe('#game', () => {
         sandbox = sinon.sandbox.create();
         fakeDb = {
             newGame: () => assert.fail(),
-            storeGame: () => assert.fail()
+            storeGame: () => assert.fail(),
+            removeGame: () => assert.fail()
         };
 
         Game = proxyquire('../src/Game', {
-            attempt: () => { return attemptWrapper.attempt; }
+            attempt: (opts, func, done) => attemptWrapper.attempt(opts, func, done)
         });        
     });
 
@@ -67,7 +72,7 @@ describe('#game', () => {
                 sandbox.stub(attemptWrapper, 'attempt');
             });
 
-            it.only('should assign a minimum number of players', () => {
+            it('should assign a minimum number of players', () => {
                 game = new Game(fakeDb, {
                     minPlayers: minPlayers,
                 });
@@ -174,7 +179,7 @@ describe('#game', () => {
                 });            
             });
 
-            it('should write the built game to the database', (done) => {
+            it('should write the game into the database', (done) => {
                 sandbox.stub(fakeDb, 'newGame').yields();
                 sandbox.mock(fakeDb)
                     .expects('storeGame')
@@ -195,35 +200,20 @@ describe('#game', () => {
         });
     });
 
-    context('game created', () => {
-        beforeEach(() => {
+    describe('game created', () => {
+        beforeEach((done) => {
             sandbox.stub(fakeDb, 'newGame').yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
             game = new Game(fakeDb, {
                 minPlayers: 2,
                 maxPlayers: 4
-            });           
+            }, done);      
         });
 
         describe('#gameStatus', () => {
-            it('should report undefined when initially created', () => {
-                assert.strictEqual(game.status, undefined);
-            });
-
-            it('should report "lobby" once started', (done) => {
-                game.start(() => {
-                    assert.strictEqual(game.status, 'lobby');
-                    done();
-                });
-            });
-
-            it('should report "ended" once stopped', (done) => {
-                game.start(() => {
-                    game.stop();
-                    assert.strictEqual(game.status, 'ended');
-                    done();
-                });
+            it('should report \'lobby\' when initially created', () => {
+                assert.strictEqual(game.status, 'lobby');
             });
         });
 
@@ -241,10 +231,18 @@ describe('#game', () => {
                 assert.strictEqual(game.numPlayers, 1);
             });
 
-            it('should return false if a player.id is added more than once');
-            it('should rnot add the player if the player.id added more than once');
+            it('should return false if a player.id is added more than once', () => {
+                game.addPlayer(player1);
+                assert.strictEqual(game.addPlayer(playerWithPlayer1sId), false);
+            });
 
-            context('with a full game', () => {
+            it('should not add the player if the player.id added more than once', () => {
+                game.addPlayer(player1);
+                game.addPlayer(playerWithPlayer1sId);
+                assert.strictEqual(game.numPlayers, 1);
+            });
+
+            describe('with a full game', () => {
                 beforeEach(() => {
                     game.addPlayer(player1);
                     game.addPlayer(player2);
@@ -332,7 +330,7 @@ describe('#game', () => {
                 });
             });
 
-            it('should set the status to "playing" if the game can start', () => {
+            it('should set the status to \'playing\' if the game can start', () => {
                 game.addPlayer(player1);
                 game.addPlayer(player2);
                 game.start();
@@ -347,12 +345,38 @@ describe('#game', () => {
                 game.start();
             });
 
-            it('should set the status to "lobby"', () => {
-                game.stop();
-                assert.strictEqual(game.status, 'lobby');
+            it('should remove the game from the database', (done) => {
+                sandbox.mock(game.db)
+                    .expects('removeGame')
+                    .once()
+                    .withExactArgs(
+                        game.gameId,
+                        sinon.match.func
+                    )
+                    .yields();
+
+                game.stop(done);
             });
 
-            it('should remove the game from the database');
+            it('should report any database errors', (done) => {
+                const expectedError = 'An error occurred';
+
+                sandbox.stub(game.db, 'removeGame').yields(expectedError);
+
+                game.stop((error) => {
+                    assert.strictEqual(error, expectedError);
+                    done();
+                });
+            });
+
+            it('should report \'stopped\' once stopped', (done) => {
+                sandbox.stub(game.db, 'removeGame').yields();
+
+                game.stop(() => {
+                    assert.strictEqual(game.status, 'stopped');
+                    done();
+                });
+            });            
         });
     });
 });

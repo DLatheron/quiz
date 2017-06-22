@@ -6,8 +6,14 @@ const randomString = require('./util/randomString');
 const _ = require('lodash');
 
 class Game {
-    constructor(db, options) {
+    constructor(db, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = {};
+        }
+
         options = options || {};
+
         this.db = db;
         this.externalIPAddress = options.externalIPAddress || 'localhost';
         this.port = options.port || 0;
@@ -15,16 +21,6 @@ class Game {
         this.maxPlayers = options.maxPlayers || 32;
         this.minPlayers = options.minPlayers || 1;
         this.players = [];
-    }
-
-    get _id() {
-        return this.gameId;
-    }
-
-    start(done) {
-        if (!this.canStart) {
-            throw new Error('Unable to start game');
-        }
 
         this.status = 'lobby';
 
@@ -43,19 +39,32 @@ class Game {
             },
             (error, gameId) => {
                 if (error) {
-                    return done(error);
+                    return callback(error);
                 }
 
                 this.gameId = gameId;
 
                 this.db.storeGame(this.convertToDBFormat(), (error) => {
                     if (error) {
-                        done(error);
+                        callback(error);
                     }
-                    done(null, game);
+                    callback(null, game);
                 });
             }
         );        
+    }
+
+    get _id() {
+        return this.gameId;
+    }
+
+    start(done) {
+        if (!this.canStart) {
+            throw new Error('Unable to start game');
+        }
+
+        this.status = 'lobby';
+
     }
 
     stop() {
@@ -65,6 +74,10 @@ class Game {
 
     get canStart() {
         return this.players.length >= this.minPlayers;
+    }
+
+    get numPlayers() {
+        return this.players.length;
     }
 
     addPlayer(player) {

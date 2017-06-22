@@ -8,12 +8,16 @@
 
 
 const assert = require('assert');
-//const proxyquire = require('proxyquire');
+const attemptWrapper = { attempt: require('attempt') };
+const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 
 describe('#game', () => {
     const minPlayers = 2;
     const maxPlayers = 4;
+    const externalIPAddress = 'external IP address';
+    const port = 49652;
+    const maxRetries = 4;
     const player1 = { 
         id: 'p1',
         name: 'Player 1'
@@ -47,7 +51,9 @@ describe('#game', () => {
             storeGame: () => assert.fail()
         };
 
-        Game = require('../src/Game');
+        Game = proxyquire('../src/Game', {
+            attempt: () => { return attemptWrapper.attempt; }
+        });        
     });
 
     afterEach(() => {
@@ -55,112 +61,137 @@ describe('#game', () => {
         sandbox.restore();
     });
 
-    describe('#minPlayers', () => {
-        it('should assign a minimum number of players', () => {
-            sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
-
-            game = new Game(fakeDb, {
-                minPlayers: minPlayers,
-            });
-            
-            assert.strictEqual(game.minPlayers, minPlayers);
-        });
-    });
-
-    describe('#maxPlayers', (done) => {
-        it('should assign a maximum number of players', () => {
-            sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
-
-            game = new Game(fakeDb, {
-                maxPlayers: maxPlayers
+    describe('#constructor', () => {
+        describe('before starting a game', () => {
+            beforeEach(() => {
+                sandbox.stub(attemptWrapper, 'attempt');
             });
 
-            assert.strictEqual(game.maxPlayers, maxPlayers);
-        });
-    });
-
-    describe('#start', () => {
-        beforeEach(() => {
-            game = new Game(fakeDb, {
-                maxRetries: 3
+            it.only('should assign a minimum number of players', () => {
+                game = new Game(fakeDb, {
+                    minPlayers: minPlayers,
+                });
+                
+                assert.strictEqual(game.minPlayers, minPlayers);
             });
-            game.addPlayer(player1);
-        });
 
-        it('should check that the game can be created in the database', (done) => {
-            sandbox.mock(fakeDb).expects('newGame').once().yields();
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+            it('should assign a maximum number of players', () => {
+                game = new Game(fakeDb, {
+                    maxPlayers: maxPlayers
+                });
 
-            game.start(done);
-        });
-
-        it('should create a game', (done) => {
-            sandbox.stub(fakeDb, 'newGame').yields();
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
-
-            game.start((error, game) => {
-                assert(game, 'game not created');
-                done(error);
+                assert.strictEqual(game.maxPlayers, maxPlayers);
             });
-        });
 
-        it('should assign a game id', (done) => {
-            sandbox.stub(fakeDb, 'newGame').yields(null, 'gameId');
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+            it('should assign an external IP address', () => {
+                game = new Game(fakeDb, {
+                    externalIPAddress: externalIPAddress
+                });
 
-            game.start((error, game) => {
-                assert.strictEqual(typeof game._id, 'string');
-                done(error);
+                assert.strictEqual(game.externalIPAddress, externalIPAddress);
+            });
+
+            it('should assign a port', () => {
+                game = new Game(fakeDb, {
+                    port: port
+                });
+
+                assert.strictEqual(game.port, port);
+            });
+
+            it('should assign the number of retries', () => {
+                game = new Game(fakeDb, {
+                    maxRetries: maxRetries
+                });
+
+                assert.strictEqual(game.maxRetries, maxRetries);
+            });
+
+            it('should start with no players', () => {
+                game = new Game(fakeDb);
+
+                assert.strictEqual(game.numPlayers, 0);
             });
         });
 
-        it('should retry until it gets a unique id', (done) => {
-            sandbox.stub(fakeDb, 'newGame')
-                .onCall(0).yields('game already exists')
-                .onCall(1).yields('game already exists')
-                .onCall(2).yields('game already exists')
-                .onCall(3).yields(null, 'newGameId');
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+        describe('starting game', () => {
+            it('should check that the game can be created in the database', (done) => {
+                sandbox.mock(fakeDb).expects('newGame').once().yields();
+                sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game.start((error, game) => {
-                assert.strictEqual(typeof game._id, 'string');
-                done(error);
+                game = new Game(fakeDb, done);
             });
-        });
 
-        it('should report an error if the game cannot be created', (done) => {
-            sandbox.stub(fakeDb, 'newGame')
-                .onCall(0).yields('game already exists')
-                .onCall(1).yields('game already exists')
-                .onCall(2).yields('game already exists')
-                .onCall(3).yields('game already exists');
-            sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+            it('should create a game', (done) => {
+                sandbox.stub(fakeDb, 'newGame').yields();
+                sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game.start((error, game) => {
-                assert.strictEqual(error, 'game already exists');
-                done(!error);
-            });            
-        });
+                game = new Game(fakeDb, (error, game) => {
+                    assert(game, 'game not created');
+                    done(error);
+                });
+            });
 
-        it('should write the built game to the database', (done) => {
-            sandbox.stub(fakeDb, 'newGame').yields();
-            sandbox.mock(fakeDb)
-                .expects('storeGame')
-                .once()
-                .withExactArgs(sinon.match(
-                    { 
-                        _id: sinon.match.string, 
-                        externalIPAddress: 'localhost', 
-                        port: 0,
-                        status: 'lobby' 
-                    }), 
-                    sinon.match.func
-                )
-                .callsFake((game, callback) => callback(null, game));
+            it('should assign a game id', (done) => {
+                sandbox.stub(fakeDb, 'newGame').yields(null, 'gameId');
+                sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game.start(done);
+                game = new Game(fakeDb, (error, game) => {
+                    assert.strictEqual(typeof game._id, 'string');
+                    done(error);
+                });
+            });
+
+            it('should retry until it gets a unique id', (done) => {
+                sandbox.stub(fakeDb, 'newGame')
+                    .onCall(0).yields('game already exists')
+                    .onCall(1).yields('game already exists')
+                    .onCall(2).yields('game already exists')
+                    .onCall(3).yields(null, 'newGameId');
+                sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+
+                game = new Game(fakeDb, {
+                    maxRetries: 3
+                }, (error, game) => {
+                    assert.strictEqual(typeof game._id, 'string');
+                    done(error);
+                });
+            });
+
+            it('should report an error if the game cannot be created', (done) => {
+                sandbox.stub(fakeDb, 'newGame')
+                    .onCall(0).yields('game already exists')
+                    .onCall(1).yields('game already exists')
+                    .onCall(2).yields('game already exists')
+                    .onCall(3).yields('game already exists');
+                sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
+
+                game = new Game(fakeDb, {
+                    maxRetries: 3
+                }, (error, game) => {
+                    assert.strictEqual(error, 'game already exists');
+                    done(!error);
+                });            
+            });
+
+            it('should write the built game to the database', (done) => {
+                sandbox.stub(fakeDb, 'newGame').yields();
+                sandbox.mock(fakeDb)
+                    .expects('storeGame')
+                    .once()
+                    .withExactArgs(sinon.match(
+                        { 
+                            _id: sinon.match.string, 
+                            externalIPAddress: 'localhost', 
+                            port: 0,
+                            status: 'lobby' 
+                        }), 
+                        sinon.match.func
+                    )
+                    .callsFake((game, callback) => callback(null, game));
+
+                game = new Game(fakeDb, done);
+            });
         });
     });
 

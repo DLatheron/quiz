@@ -1,8 +1,14 @@
 /* globals require, describe, it, context, beforeEach, afterEach */
 'use strict';
 
+// Game
+// - registers automatically - as before...
+//   - this needs a rewrite...
+//   - cannot addPlayer, but can removePlayer.
+
+
 const assert = require('assert');
-const game = require('../src/game');
+//const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 
 describe('#game', () => {
@@ -31,6 +37,8 @@ describe('#game', () => {
 
     let sandbox;
     let fakeDb;
+    let Game;
+    let game;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
@@ -38,6 +46,8 @@ describe('#game', () => {
             newGame: () => assert.fail(),
             storeGame: () => assert.fail()
         };
+
+        Game = require('../src/Game');
     });
 
     afterEach(() => {
@@ -45,51 +55,52 @@ describe('#game', () => {
         sandbox.restore();
     });
 
-    describe('#minPlayers', (done) => {
-        it('should assign a minimum number of players', (done) => {
+    describe('#minPlayers', () => {
+        it('should assign a minimum number of players', () => {
             sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
+            game = new Game(fakeDb, {
                 minPlayers: minPlayers,
-            }, (error, game) => {
-                assert.strictEqual(game.minPlayers, minPlayers);
-                done(error);
             });
+            
+            assert.strictEqual(game.minPlayers, minPlayers);
         });
     });
 
     describe('#maxPlayers', (done) => {
-        it('should assign a maximum number of players', (done) => {
+        it('should assign a maximum number of players', () => {
             sandbox.stub(fakeDb, 'newGame').yields(null, 'insert successful');
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
+            game = new Game(fakeDb, {
                 maxPlayers: maxPlayers
-            }, (error, game) => {
-                assert.strictEqual(game.maxPlayers, maxPlayers);
-                done(error);
             });
+
+            assert.strictEqual(game.maxPlayers, maxPlayers);
         });
     });
 
-    describe('#_id', () => {
+    describe('#start', () => {
+        beforeEach(() => {
+            game = new Game(fakeDb, {
+                maxRetries: 3
+            });
+            game.addPlayer(player1);
+        });
+
         it('should check that the game can be created in the database', (done) => {
             sandbox.mock(fakeDb).expects('newGame').once().yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
-                maxRetries: 0
-            }, (error, game) => {
-                done();
-            });
+            game.start(done);
         });
 
         it('should create a game', (done) => {
             sandbox.stub(fakeDb, 'newGame').yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, (error, game) => {
+            game.start((error, game) => {
                 assert(game, 'game not created');
                 done(error);
             });
@@ -99,7 +110,7 @@ describe('#game', () => {
             sandbox.stub(fakeDb, 'newGame').yields(null, 'gameId');
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, (error, game) => {
+            game.start((error, game) => {
                 assert.strictEqual(typeof game._id, 'string');
                 done(error);
             });
@@ -113,9 +124,7 @@ describe('#game', () => {
                 .onCall(3).yields(null, 'newGameId');
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
-                maxRetries: 3
-            }, (error, game) => {
+            game.start((error, game) => {
                 assert.strictEqual(typeof game._id, 'string');
                 done(error);
             });
@@ -125,12 +134,11 @@ describe('#game', () => {
             sandbox.stub(fakeDb, 'newGame')
                 .onCall(0).yields('game already exists')
                 .onCall(1).yields('game already exists')
-                .onCall(2).yields('game already exists');
+                .onCall(2).yields('game already exists')
+                .onCall(3).yields('game already exists');
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
-                maxRetries: 2
-            }, (error, game) => {
+            game.start((error, game) => {
                 assert.strictEqual(error, 'game already exists');
                 done(!error);
             });            
@@ -144,56 +152,62 @@ describe('#game', () => {
                 .withExactArgs(sinon.match(
                     { 
                         _id: sinon.match.string, 
-                        serverAddress: sinon.match.string, 
+                        externalIPAddress: 'localhost', 
+                        port: 0,
                         status: 'lobby' 
                     }), 
                     sinon.match.func
                 )
                 .callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
-                maxRetries: 0,
-                serverAddress: 'serverAddress:port'
-            }, (error, game) => {
-                done();
-            });
+            game.start(done);
         });
     });
 
     context('game created', () => {
-        let gameUnderTest;
-
-        beforeEach((done) => {
+        beforeEach(() => {
             sandbox.stub(fakeDb, 'newGame').yields();
             sandbox.stub(fakeDb, 'storeGame').callsFake((game, callback) => callback(null, game));
 
-            game(fakeDb, {
+            game = new Game(fakeDb, {
                 minPlayers: 2,
                 maxPlayers: 4
-            }, (error, game) => {
-                gameUnderTest = game;
-                done(error);
-            });            
+            });           
         });
 
         describe('#gameStatus', () => {
-            it('should start with the status "lobby"', () => {
-                assert.strictEqual(gameUnderTest.status, 'lobby');
+            it('should report undefined when initially created', () => {
+                assert.strictEqual(game.status, undefined);
+            });
+
+            it('should report "lobby" once started', (done) => {
+                game.start(() => {
+                    assert.strictEqual(game.status, 'lobby');
+                    done();
+                });
+            });
+
+            it('should report "ended" once stopped', (done) => {
+                game.start(() => {
+                    game.stop();
+                    assert.strictEqual(game.status, 'ended');
+                    done();
+                });
             });
         });
 
         describe('#addPlayer', () => {
             it('should start with zero players', () => {
-                assert.strictEqual(gameUnderTest.numPlayers, 0);
+                assert.strictEqual(game.numPlayers, 0);
             });
 
             it('should return true if a player was added to the game', () => {
-                assert(gameUnderTest.addPlayer(player1), 'player could not be added to the game');
+                assert(game.addPlayer(player1), 'player could not be added to the game');
             });
 
             it('should add a player to the game', () => {
-                gameUnderTest.addPlayer(player1);
-                assert.strictEqual(gameUnderTest.numPlayers, 1);
+                game.addPlayer(player1);
+                assert.strictEqual(game.numPlayers, 1);
             });
 
             it('should return false if a player.id is added more than once');
@@ -201,110 +215,110 @@ describe('#game', () => {
 
             context('with a full game', () => {
                 beforeEach(() => {
-                    gameUnderTest.addPlayer(player1);
-                    gameUnderTest.addPlayer(player2);
-                    gameUnderTest.addPlayer(player3);
-                    gameUnderTest.addPlayer(player4);
+                    game.addPlayer(player1);
+                    game.addPlayer(player2);
+                    game.addPlayer(player3);
+                    game.addPlayer(player4);
                 });
 
                 it('should return false if a player could not be added to the game', () => {
-                    assert.strictEqual(gameUnderTest.addPlayer(player5), false);
+                    assert.strictEqual(game.addPlayer(player5), false);
                 });
 
                 it('should not add a player if the maximum players count would be exceeded', () => {
-                    gameUnderTest.addPlayer(player5);
-                    assert.strictEqual(gameUnderTest.numPlayers, 4);
+                    game.addPlayer(player5);
+                    assert.strictEqual(game.numPlayers, 4);
                 });
             });
         });
 
         describe('#getPlayer', () => {
             beforeEach(() => {
-                gameUnderTest.addPlayer(player1);
-                gameUnderTest.addPlayer(player2);
-                gameUnderTest.addPlayer(player3);
-                gameUnderTest.addPlayer(player4);
+                game.addPlayer(player1);
+                game.addPlayer(player2);
+                game.addPlayer(player3);
+                game.addPlayer(player4);
             });
             
             it('should return the player if they are present', () => {
-                assert.deepStrictEqual(gameUnderTest.getPlayer(player3.id), player3);
+                assert.deepStrictEqual(game.getPlayer(player3.id), player3);
             });
 
             it('should return undefined if the player is not found', () => {
-                assert.deepStrictEqual(gameUnderTest.getPlayer(player5.id), undefined);
+                assert.deepStrictEqual(game.getPlayer(player5.id), undefined);
             });
         });
 
         describe('#canStart', () => {
             it('should return false if there are no player present', () => {
-                assert.strictEqual(gameUnderTest.canStart, false);
+                assert.strictEqual(game.canStart, false);
             });
 
             it('should return false if minimum players are not present', () => {
-                gameUnderTest.addPlayer(player1);
-                assert.strictEqual(gameUnderTest.canStart, false);
+                game.addPlayer(player1);
+                assert.strictEqual(game.canStart, false);
             });
 
             it('should return true once minimum players are present', () => {
-                gameUnderTest.addPlayer(player1);
-                gameUnderTest.addPlayer(player2);
-                assert.strictEqual(gameUnderTest.canStart, true);
+                game.addPlayer(player1);
+                game.addPlayer(player2);
+                assert.strictEqual(game.canStart, true);
             });
         });
 
         describe('#removePlayer', () => {
             beforeEach(() => {
-                gameUnderTest.addPlayer(player1);
-                gameUnderTest.addPlayer(player2);
-                gameUnderTest.addPlayer(player3);
-                gameUnderTest.addPlayer(player4);
+                game.addPlayer(player1);
+                game.addPlayer(player2);
+                game.addPlayer(player3);
+                game.addPlayer(player4);
             });
 
             it('should return true if it removes the requested player', () => {
-                assert.strictEqual(gameUnderTest.removePlayer(player3), true);
+                assert.strictEqual(game.removePlayer(player3), true);
             });
 
             it('should remove the requested player', () => {
-                gameUnderTest.removePlayer(player3.id);
-                assert.strictEqual(gameUnderTest.getPlayer(player3.id, undefined));
+                game.removePlayer(player3.id);
+                assert.strictEqual(game.getPlayer(player3.id, undefined));
             });
 
             it('should return false if the player cannot be removed', () => {
-                assert.strictEqual(gameUnderTest.removePlayer(player5), false);
+                assert.strictEqual(game.removePlayer(player5), false);
             });
 
             it('should leave players unchanged if the player does not exist', () => {
-                gameUnderTest.removePlayer(player5);
-                assert.strictEqual(gameUnderTest.numPlayers, 4);
+                game.removePlayer(player5);
+                assert.strictEqual(game.numPlayers, 4);
             });
         });
 
         describe('#start', () => {
             it('should throw if the game cannot start', () => {
-                gameUnderTest.addPlayer(player1);
+                game.addPlayer(player1);
                 assert.throws(() => {
-                    gameUnderTest.start();
+                    game.start();
                 });
             });
 
             it('should set the status to "playing" if the game can start', () => {
-                gameUnderTest.addPlayer(player1);
-                gameUnderTest.addPlayer(player2);
-                gameUnderTest.start();
-                assert.strictEqual(gameUnderTest.status, 'playing');
+                game.addPlayer(player1);
+                game.addPlayer(player2);
+                game.start();
+                assert.strictEqual(game.status, 'playing');
             });
         });
 
         describe('#stop', () => {
             beforeEach(() => {
-                gameUnderTest.addPlayer(player1);
-                gameUnderTest.addPlayer(player2);
-                gameUnderTest.start();
+                game.addPlayer(player1);
+                game.addPlayer(player2);
+                game.start();
             });
 
             it('should set the status to "lobby"', () => {
-                gameUnderTest.stop();
-                assert.strictEqual(gameUnderTest.status, 'lobby');
+                game.stop();
+                assert.strictEqual(game.status, 'lobby');
             });
 
             it('should remove the game from the database');

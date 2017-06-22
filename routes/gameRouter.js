@@ -2,7 +2,7 @@
 'use strict';
 
 const express = require('express');
-const game = require('../src/game');
+const game = require('../src/Game');
 const GameServer = require('../src/GameServer');
 const httpStatus = require('http-status-codes');
 const router = express.Router();

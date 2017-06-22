@@ -5,6 +5,103 @@ const attempt = require('attempt');
 const randomString = require('./util/randomString');
 const _ = require('lodash');
 
+class Game {
+    constructor(db, options) {
+        options = options || {};
+        this.db = db;
+        this.externalIPAddress = options.externalIPAddress || 'localhost';
+        this.port = options.port || 0;
+        this.maxRetries = (options.maxRetries !== undefined) ? options.maxRetries : 10;
+        this.maxPlayers = options.maxPlayers || 32;
+        this.minPlayers = options.minPlayers || 1;
+        this.players = [];
+    }
+
+    get _id() {
+        return this.gameId;
+    }
+
+    start(done) {
+        if (!this.canStart) {
+            throw new Error('Unable to start game');
+        }
+
+        this.status = 'lobby';
+
+        const gameIdGenerator = randomString({
+            format: 'AA9A-AA9A'
+        });
+
+        const game = this;
+
+        attempt(
+            { retries: this.maxRetries },
+            function(attempt) {
+                const gameId = gameIdGenerator.generate();
+
+                game.db.newGame(gameId, (error) => this(error, gameId));
+            },
+            (error, gameId) => {
+                if (error) {
+                    return done(error);
+                }
+
+                this.gameId = gameId;
+
+                this.db.storeGame(this.convertToDBFormat(), (error) => {
+                    if (error) {
+                        done(error);
+                    }
+                    done(null, game);
+                });
+            }
+        );        
+    }
+
+    stop() {
+        // TODO: Do whatever is necessary to stop the game.
+        this.status = 'ended';
+    }
+
+    get canStart() {
+        return this.players.length >= this.minPlayers;
+    }
+
+    addPlayer(player) {
+        if (this.players.length < this.maxPlayers) {
+            this.players.push(player);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    getPlayer(playerId) {
+        return this.players.find((player) => player.id === playerId);
+    }
+
+    removePlayer(player) {
+        const playerId = player.id || player;
+        const index = this.players.findIndex((player) => player.id === playerId);
+        if (index !== -1) {
+            this.players.splice(index, 1);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    convertToDBFormat() {
+        return _.pick(this, [
+            '_id',
+            'externalIPAddress',
+            'port',
+            'status',
+        ]);
+    }
+}
+
+/*
 function game(db, options, done) {
     if (typeof options === 'function') {
         done = options;
@@ -64,7 +161,8 @@ function game(db, options, done) {
     function convertToDBFormat(gameToStore) {
         return _.pick(gameToStore, [
             '_id',
-            'serverAddress',
+            'externalIPAddress',
+            'port',
             'status',
         ]);
     }
@@ -139,5 +237,6 @@ function game(db, options, done) {
         }
     );
 }
+*/
 
-module.exports = game;
+module.exports = Game;

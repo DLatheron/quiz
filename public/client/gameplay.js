@@ -13,10 +13,10 @@
 //     callback(id);
 // });
 
-const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`, 'echo-protocol');
+const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`);
 
 ws.onopen = (event) => {
-    console.log('Connection opened');
+    console.log('WebSocket connection opened');
 
     ws.send(`JOIN ${gameId}`);    
 };
@@ -26,11 +26,11 @@ ws.onmessage = (event) => {
 };
 
 ws.onerror = (event) => {
-    console.log(event.error);
+    console.log(`WebSocket connection error: ${event.error}`);
 };
 
 ws.onclose = (event) => {
-    console.log('Connection closed');
+    console.log('WebSocket connection closed');
 };
 
 /*

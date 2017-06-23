@@ -65,6 +65,11 @@ router.get('/create', (req, res) => {
         }
     });
 
+    server.netEvents.on('SAY', (connection, message) => {
+        console.log(`Connection ${connection.name} said '${message}'`);
+        server.broadcast(`${connection.name} SAID '${message}'`, connection);
+    });
+
     server.netEvents.on('LEAVE', (connection) => {
         connection.close();
         connection.gameState = 'exited';

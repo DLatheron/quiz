@@ -2,7 +2,7 @@
 'use strict';
 
 const express = require('express');
-const game = require('../src/Game');
+const Game = require('../src/Game');
 const GameServer = require('../src/GameServer');
 const httpStatus = require('http-status-codes');
 const router = express.Router();
@@ -26,8 +26,11 @@ router.get('/create', (req, res) => {
             return res.send(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        game(req.db, {
-            serverAddress: server.address
+        return new Game(req.db, {
+            externalIPAddress: server.externalIPAddress,
+            port: server.port,
+            minPlayers: 1,
+            maxPlayers: 32,
         }, (error, newGame) => {
             if (error) {
                 return res.send(httpStatus.INTERNAL_SERVER_ERROR);

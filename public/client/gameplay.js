@@ -1,4 +1,4 @@
-/* globals gameServerAddress, gameServerPort, gameId */
+/* globals WebSocket, gameServerAddress, gameServerPort, gameId */
 'use strict';
 
 // const wsMain = require('../../node_modules/json-websockets/lib/main');
@@ -12,6 +12,29 @@
 // ws.connect.on('welcome', (id, callback) => {
 //     callback(id);
 // });
+
+const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`, 'echo-protocol');
+
+ws.onopen = (event) => {
+    console.log('Connection opened');
+
+    ws.send(`JOIN ${gameId}`);    
+};
+
+ws.onmessage = (event) => {
+    console.log(event.data);
+};
+
+ws.onerror = (event) => {
+    console.log(event.error);
+};
+
+ws.onclose = (event) => {
+    console.log('Connection closed');
+};
+
+/*
+
 
 const WebSocketClient = require('websocket').client;
 
@@ -43,3 +66,4 @@ wsClient.addEventListener('connect', (connection) => {
 
 // Open the connection.
 wsClient.connect(`ws://${gameServerAddress}:${gameServerPort}`, 'echo-protocol');
+*/

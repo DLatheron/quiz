@@ -1,4 +1,11 @@
 Next:
+- Assign a friendly name to a connection (can't be simply player 1 etc. because connections might disappear - but could the be the name of the player who connects?)
+- After successful JOIN/JOINED handshake we could exchange the name of the player
+- Debug hard-coding of the gameId and port used to allow much quicker setup, especially from the command line;
+- Use the connection's new name.
+
+
+
 x Would be better to resolve the external IP address once and for all;
 x Database just holds the game id -> IP/port mapping;
 x External IP

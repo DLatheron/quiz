@@ -13,7 +13,8 @@ class GameServer {
         this.port = _.get(options, 'port') || undefined;
         this.netEvents = new NetEvents();
         this.server = ws.createServer({ /* secure: true */ }, (connection) => {
-            connection.name = GameServer.BuildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
+            connection.address = GameServer.BuildAddress(connection.socket.remoteAddress, connection.socket.remotePort);
+            connection.name = connection.address;
 
             connection.sendText(`Welcome ${connection.name}\n`);
             this.broadcast(`${connection.name} joined the server\n`, connection);

@@ -65,7 +65,19 @@ router.get('/create', (req, res) => {
         }
     });
 
+    server.netEvents.on('NAME', (connection, name) => {
+        if (!connection.gameState) {
+            connection.close();
+        }
+        console.log(`Connection ${connection.name} set it's name to '${name}'`);
+        server.broadcast(`${connection.name} NAMED '${name}'`);
+        connection.name = name;
+    });
+
     server.netEvents.on('SAY', (connection, message) => {
+        if (!connection.gameState) {
+            connection.close();
+        }
         console.log(`Connection ${connection.name} said '${message}'`);
         server.broadcast(`${connection.name} SAID '${message}'`, connection);
     });

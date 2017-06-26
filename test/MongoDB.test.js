@@ -37,7 +37,8 @@ describe('#MongoDB', () => {
         fakeCollection = {
             find: () => assert.fail(),
             findOne: () => assert.fail(),
-            insert: () => assert.fail()
+            insert: () => assert.fail(),
+            replace: () => assert.fail()
         };
 
         fakeDatabase = {
@@ -299,16 +300,40 @@ describe('#MongoDB', () => {
         });
 
         describe('#getUser', () => {
-
+            // TODO:
         });
 
         describe('#storeUser', () => {
-
+            // TODO:
         });
 
         describe('#newGame', () => {
             beforeEach((done) => {
                 mongoDB.connect(done);
+            });
+
+            it('should call insert on the database if not forced', (done) => {
+                sandbox.mock(fakeCollection)
+                    .expects('insert')
+                    .once()
+                    .yields(null);
+                mongoDB.newGame('AAA9-AAA9', done);
+            });
+
+            it('should call insert on the database if not forced', (done) => {
+                sandbox.mock(fakeCollection)
+                    .expects('insert')
+                    .once()
+                    .yields(null);
+                mongoDB.newGame('AAA9-AAA9', false, done);
+            });
+
+            it('should call replace on the database if forced', (done) => {
+                sandbox.mock(fakeCollection)
+                    .expects('replace')
+                    .once()
+                    .yields(null);
+                mongoDB.newGame('AAA9-AAA9', true, done);
             });
 
             it('should add a unique game to the database', (done) => {

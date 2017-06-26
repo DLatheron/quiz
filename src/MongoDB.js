@@ -124,8 +124,17 @@ class MongoDB {
         this.database.collection('users').insert(user, callback);
     }
 
-    newGame(gameId, callback) {
-        this.database.collection('games').insert({ _id: gameId}, callback);
+    newGame(gameId, forceUpdate, callback) {
+        if (typeof forceUpdate === 'function') {
+            callback = forceUpdate;
+            forceUpdate = false;
+        }
+        
+        if (forceUpdate) {
+            this.database.collection('games').replace({ _id: gameId}, callback);
+        } else {
+            this.database.collection('games').insert({ _id: gameId}, callback);
+        }
     }
 
     storeGame(game, callback) {

@@ -2,6 +2,7 @@
 'use strict';
 
 const attempt = require('attempt');
+const nconf = require('nconf');
 const randomString = require('./util/randomString');
 const _ = require('lodash');
 
@@ -33,9 +34,10 @@ class Game {
         attempt(
             { retries: this.maxRetries },
             function(attempt) {
-                const gameId = gameIdGenerator.generate();
+                const staticGameId = nconf.get('StaticGameId');
+                const gameId = staticGameId || gameIdGenerator.generate();
 
-                game.db.newGame(gameId, (error) => this(error, gameId));
+                game.db.newGame(gameId, staticGameId, (error) => this(error, gameId));
             },
             (error, gameId) => {
                 if (error) {

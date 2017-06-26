@@ -7,7 +7,7 @@ const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`);
 
 const netEvents = new NetEvents();
 
-ws.on = (type, data) => {
+ws.on = (type, data) => { 
     console.log(`[${type}] ${data}`);
 };
 

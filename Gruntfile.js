@@ -36,36 +36,13 @@ module.exports = function(grunt) {
             }
         },
         watch: {
+            browserify: {
+                files: ['src/client/**/*.js', 'src/common/**/*.js'],
+                tasks: ['browserify']
+            },
             test: {
                 files: ['Gruntfile.js', 'test/**/*.js', 'src/**/*.js'],
                 tasks: ['test']
-            }
-        },
-        watchify: {
-            // options: {
-            //     // defaults options used in b.bundle(opts) 
-            //     detectGlobals: true,
-            //     insertGlobals: false,
-            //     ignoreMissing: false,
-            //     debug: false,
-            //     standalone: false,
-
-            //     keepalive: false,
-            //     callback: function (b) {
-            //         // configure the browserify instance here 
-            //         b.add();
-            //         b.require();
-            //         b.external();
-            //         b.ignore();
-            //         b.transform();
-
-            //         // return it 
-            //         return b;
-            //     }
-            // },            
-            gameplay: {
-                src: ['./src/client/**/*.js', './src/common/**/*.js'],
-                dest: 'public/app.js'
             }
         },
         browserify: {

@@ -46,7 +46,11 @@ module.exports = function(grunt) {
             }
         },
         browserify: {
-            'public/app.js': ['/src/client/gameplay.js']
+            dist: {
+                files: {
+                    'public/app.js': ['src/client/gameplay.js']
+                }
+            }
         }         
     });
 

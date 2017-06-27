@@ -5,47 +5,37 @@ const express = require('express');
 const Game = require('../src/Game');
 const GameServer = require('../src/GameServer');
 const httpStatus = require('http-status-codes');
+const nconf = require('nconf');
+const tcpPortUsed = require('tcp-port-used');
+
 const router = express.Router();
 
-
-router.get('/', (req, res) => {
-
-});
-
-router.get('/create', (req, res) => {
-    if (!req.user) {
-        return res.send(httpStatus.UNAUTHORIZED);
-    }
-
+function createServer(db, externalIP, port, callback) {
     const server = new GameServer({
-        externalIPAddress: req.app.locals.externalIP
+        externalIPAddress: externalIP,
+        port: port
     });
-    
+
     server.start((error) => {
         if (error) {
-            return res.send(httpStatus.INTERNAL_SERVER_ERROR);
+            return callback(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new Game(req.db, {
+        return new Game(db, {
             externalIPAddress: server.externalIPAddress,
             port: server.port,
             minPlayers: 1,
             maxPlayers: 32,
         }, (error, newGame) => {
             if (error) {
-                return res.send(httpStatus.INTERNAL_SERVER_ERROR);
+                return callback(httpStatus.INTERNAL_SERVER_ERROR);
             }
 
             server.game = newGame;
 
             console.info(`Game id: ${newGame._id}`);
 
-            res.render('newGame', {
-                title: 'Create Game',
-                gameId: newGame._id,
-                gameServerPort: server.port,
-                gameServerAddress: `${server.externalIPAddress}`
-            });
+            callback(null, server);
         });
     });
 
@@ -86,6 +76,54 @@ router.get('/create', (req, res) => {
         connection.close();
         connection.gameState = 'exited';
     });
+}
+
+function createServerOnPort(req, res, port) {
+    createServer(
+        req.db,
+        req.app.locals.externalIP,
+        port,
+        (error, server) => {
+            if (error) { return res.sendStatus(error); }
+
+            res.render('newGame', {
+                title: 'Create Game',
+                gameId: server.game._id,
+                gameServerPort: server.port,
+                gameServerAddress: `${server.externalIPAddress}`
+            });
+        }
+    );  
+}
+
+function createServerOnAvailablePort(req, res, port) {
+    if (port) {
+        tcpPortUsed.check(port)
+            .then((inUse) => {
+                if (inUse) {
+                    return createServerOnAvailablePort(req, res, port + 1);
+                }
+              
+                createServerOnPort(req, res, port);
+            });
+    } else {
+        createServerOnPort(req, res, port);
+    }
+}
+
+
+router.get('/', (req, res) => {
+
+});
+
+router.get('/create', (req, res) => {
+    if (!req.user) {
+        return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+
+    const port = nconf.get('StaticGamePort', 0);
+
+    createServerOnAvailablePort(req, res, port);
 });
 
 router.get('/join', (req, res) => {
@@ -103,7 +141,7 @@ router.post('/join', (req, res) => {
     const errors = null;
 
     if (errors) {
-        return res.send(httpStatus.BAD_REQUEST);
+        return res.sendStatus(httpStatus.BAD_REQUEST);
     }
 
     res.redirect(`/game/join/${req.body.gameId}`);
@@ -115,7 +153,7 @@ router.get('/join/:gameId', (req, res) => {
 
     req.db.retrieveGame(gameId, (error, game) => {
         if (error) { 
-            return res.send(httpStatus.NOT_FOUND);
+            return res.sendStatus(httpStatus.NOT_FOUND);
         }
 
         if (game) {

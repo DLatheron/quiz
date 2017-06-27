@@ -80,7 +80,7 @@ app.setErrorHandling = function() {
             return next(err);
         }
         res.status(403);
-        res.send('Forbidden (403) - invalid CSRF token.');
+        res.sendStatus('Forbidden (403) - invalid CSRF token.');
     });
 
     // error handler

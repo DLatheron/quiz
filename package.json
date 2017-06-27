@@ -38,6 +38,7 @@
     "serve-favicon": "~2.3.2",
     "shuffle-array": "^1.0.1",
     "tablesorter": "^2.28.5",
+    "tcp-port-used": "^0.1.2",
     "yargs": "^7.0.2"
   },
   "devDependencies": {

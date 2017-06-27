@@ -6,7 +6,7 @@ const httpStatus = require('http-status-codes');
 const Question = require('../src/Question');
 const router = express.Router();
 const shuffle = require('shuffle-array');
-const { ObjectId } = require('mongodb');
+//const { ObjectId } = require('mongodb');
 
 router.get('/', (req, res) => {
     if (!req.user) { 
@@ -40,7 +40,7 @@ router.get('/add', (req, res) => {
 
 router.post('/add', (req, res, next) => {
     if (!req.user) { 
-        return res.send(httpStatus.UNAUTHORIZED); 
+        return res.sendStatus(httpStatus.UNAUTHORIZED); 
     }
 
     //req.checkBody('text', 'question text required').notEmpty();
@@ -53,7 +53,7 @@ router.post('/add', (req, res, next) => {
     const errors = null;
 
     if (errors) {
-        return res.send(httpStatus.BAD_REQUEST);
+        return res.sendStatus(httpStatus.BAD_REQUEST);
     }
 
     // TODO: Validation of passed question parameters.
@@ -68,7 +68,7 @@ router.post('/add', (req, res, next) => {
     req.db.addQuestion(question.convertToDBFormat(), (error) => {
         if (error) { next(error); }
 
-        res.send(httpStatus.OK);
+        res.sendStatus(httpStatus.OK);
     });
 });
 

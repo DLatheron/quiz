@@ -2,7 +2,6 @@
 'use strict';
 
 const assert = require('assert');
-//const MongoClient = require('mongodb').MongoClient;
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 
@@ -38,7 +37,7 @@ describe('#MongoDB', () => {
             find: () => assert.fail(),
             findOne: () => assert.fail(),
             insert: () => assert.fail(),
-            replace: () => assert.fail()
+            upsert: () => assert.fail()
         };
 
         fakeDatabase = {
@@ -322,16 +321,26 @@ describe('#MongoDB', () => {
 
             it('should call insert on the database if not forced', (done) => {
                 sandbox.mock(fakeCollection)
-                    .expects('insert')
+                    .expects('update')
                     .once()
+                    .withExactArgs(
+                        sinon.match.object,
+                        {},
+                        sinon.match.func
+                    )
                     .yields(null);
                 mongoDB.newGame('AAA9-AAA9', false, done);
             });
 
-            it('should call replace on the database if forced', (done) => {
+            it('should call upsert on the database if forced', (done) => {
                 sandbox.mock(fakeCollection)
-                    .expects('replace')
+                    .expects('update')
                     .once()
+                    .withExactArgs(
+                        sinon.match.object,
+                        { upsert: true },
+                        sinon.match.func
+                    )
                     .yields(null);
                 mongoDB.newGame('AAA9-AAA9', true, done);
             });

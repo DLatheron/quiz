@@ -324,6 +324,7 @@ describe('#MongoDB', () => {
                     .expects('update')
                     .once()
                     .withExactArgs(
+                        { _id: sinon.match.string },
                         sinon.match.object,
                         {},
                         sinon.match.func
@@ -337,6 +338,7 @@ describe('#MongoDB', () => {
                     .expects('update')
                     .once()
                     .withExactArgs(
+                        { _id: sinon.match.string },
                         sinon.match.object,
                         { upsert: true },
                         sinon.match.func
@@ -359,6 +361,12 @@ describe('#MongoDB', () => {
                     done(!error);
                 }); 
             });
+        });
+
+        describe('#removeGame', () => {
+            it('should call deleteOne on the database');
+            it('should callback with success if the deletion succeeds');
+            it('should callback with an error if the deletion fails');
         });
     });
 });

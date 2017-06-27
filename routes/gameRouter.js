@@ -31,12 +31,25 @@ function createServer(db, externalIP, port, callback) {
                 return callback(httpStatus.INTERNAL_SERVER_ERROR);
             }
 
+            newGame.server = server;
             server.game = newGame;
 
             console.info(`Game id: ${newGame._id}`);
 
             callback(null, server);
         });
+    });
+
+    server.on('clientConnected', (connection) => {
+    });
+
+    server.on('clientDisconnected', (connection) => {
+        if (server.numConnections === 0) {
+            server.stop();
+            server.game.stop(() => {
+                console.log(`Game ${server.game._id} stopped`);
+            });
+        }
     });
 
     server.netEvents.on('JOIN', (connection, gameIdToJoin) => {
@@ -153,11 +166,11 @@ router.get('/join/:gameId', (req, res) => {
 
     req.db.retrieveGame(gameId, (error, game) => {
         if (error) { 
-            return res.sendStatus(httpStatus.NOT_FOUND);
+            return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        if (game) {
-            // TODO: Not found.
+        if (!game) {
+            return res.sendStatus(httpStatus.NOT_FOUND);
         }
 
         res.render('playGame', {
@@ -170,8 +183,31 @@ router.get('/join/:gameId', (req, res) => {
     // TODO: 
     // - Lookup this game id in the database.
     // - Generate a page which includes a link to the server address.
-
 });
 
+router.post('/quit', (req, res) => {
+    res.redirect(`/game/quit/${req.body.gameId}`);
+});
+
+router.post('/quit/:gameId', (req, res) => {
+    if (!req.user) {
+        return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+    
+    const gameId = req.params.gameId;
+
+    req.db.retrieveGame(gameId, (error, game) => {
+        if (error) {
+            return res.sendStatus(httpStatus.NOT_FOUND);
+        }
+
+        // TODO: Protect the game from arbitary close down.
+        //       Probably we should close down games when their players fall to 0 and they timeout...
+
+        if (game) {
+            //req.db.deleteGame(gameId);
+        }
+    });
+});
 
 module.exports = router;

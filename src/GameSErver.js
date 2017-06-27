@@ -1,14 +1,17 @@
 /* globals require, module */
 'use strict';
 
+const EventEmitter = require('events');
 const NetEvents = require('./common/NetEvents');
 const ws = require('nodejs-websocket');
 const _ = require('lodash');
 
 // TODO: Disable logging!!!
 
-class GameServer {
+class GameServer extends EventEmitter {
     constructor(options) {
+        super();
+
         this.externalIPAddress = _.get(options, 'externalIPAddress') || 'localhost';
         this.port = _.get(options, 'port') || undefined;
         this.netEvents = new NetEvents();
@@ -18,23 +21,29 @@ class GameServer {
 
             connection.sendText(`Welcome ${connection.name}\n`);
             this.broadcast(`${connection.name} joined the server\n`, connection);
-
             this.netEvents.add(connection);
 
-            // connection.on('text', (str) => {
-            //     this.broadcast(`${connection.name}> ${str}`, connection);
-            // });
+            this.emit('clientConnected', connection);
 
             connection.on('close', (code, reason) => {
                 this.broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
                 this.netEvents.remove(connection);
+                this.emit('clientDisconnected', connection);
+            });
+
+            connection.on('error', (error) => {
+                console.error(`${connection.name} generated error: ${error}`);
             });
         });
     }
 
     static BuildAddress(ipAddress, port) {
         return `${ipAddress}:${port}`;
-    }     
+    }
+
+    get numConnections() {
+        return this.server.connections.length;
+    }
 
     start(callback) {
         this.server.on('listening', () => {

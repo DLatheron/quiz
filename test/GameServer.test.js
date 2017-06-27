@@ -192,6 +192,28 @@ describe('#GameServer', () => {
 
             createServerStub.yield(fakeConnection);
         });
+
+        it('should raise a \'clientConnected\' event', () => {
+            sandbox.mock(gameServer)
+                .expects('emit')
+                .withArgs(
+                    'clientConnected',
+                    fakeConnection
+                )
+                .once();
+
+            createServerStub.yield(fakeConnection);
+        });
+    });
+
+    describe('when a client disconnected', () => {
+        beforeEach(() => {
+            // TODO: Set up a number of fake connections.
+        });
+
+        it('should inform other clients');
+        it('should deregister the connection from events');
+        it('should raise a \'clientDisconnected\' event');
     });
 
     describe('#stop', () => {

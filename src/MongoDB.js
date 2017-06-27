@@ -132,15 +132,19 @@ class MongoDB {
 
         const options = forceUpdate ? { upsert: true } : {};
 
-        this.database.collection('games').update({ _id: gameId }, options, callback);
+        this.database.collection('games').update({ _id: gameId }, { _id: gameId }, options, callback);
     }
 
     storeGame(game, callback) {
-        this.database.collection('games').update({ _id: game._id }, game, callback);
+        this.database.collection('games').update({ _id: game._id }, game, { upsert: true }, callback);
     }
 
     retrieveGame(gameId, callback) {
         this.database.collection('games').findOne({ _id: gameId }, callback);
+    }
+
+    removeGame(gameId, callback) {
+        this.database.collection('games').deleteOne({ _id: gameId }, callback);
     }
 }
 

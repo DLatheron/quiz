@@ -312,6 +312,7 @@ const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`);
 
 const netEvents = new NetEvents();
 
+// Wrapper to allow use of NetEvents on the client and server.
 ws.on = (type, data) => { 
     console.log(`[${type}] ${data}`);
 };

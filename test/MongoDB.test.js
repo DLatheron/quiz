@@ -37,7 +37,7 @@ describe('#MongoDB', () => {
             find: () => assert.fail(),
             findOne: () => assert.fail(),
             insert: () => assert.fail(),
-            upsert: () => assert.fail()
+            update: () => assert.fail()
         };
 
         fakeDatabase = {
@@ -311,15 +311,15 @@ describe('#MongoDB', () => {
                 mongoDB.connect(done);
             });
 
-            it('should call insert on the database if not forced', (done) => {
+            it('should call update on the database if not forced', (done) => {
                 sandbox.mock(fakeCollection)
-                    .expects('insert')
+                    .expects('update')
                     .once()
                     .yields(null);
                 mongoDB.newGame('AAA9-AAA9', done);
             });
 
-            it('should call insert on the database if not forced', (done) => {
+            it('should call update on the database if not forced', (done) => {
                 sandbox.mock(fakeCollection)
                     .expects('update')
                     .once()
@@ -346,14 +346,14 @@ describe('#MongoDB', () => {
             });
 
             it('should add a unique game to the database', (done) => {
-                sandbox.stub(fakeCollection, 'insert').yields(null);
+                sandbox.stub(fakeCollection, 'update').yields(null);
                 mongoDB.newGame('AAA9-AAA9', (error) => {
                     done(error);
                 }); 
             });
 
             it('should emit an error if the game already exists', (done) => {
-                sandbox.stub(fakeCollection, 'insert').yields(expectedError);
+                sandbox.stub(fakeCollection, 'update').yields(expectedError);
                 mongoDB.newGame('AAA9-AAA9', (error) => {
                     assert.strictEqual(error, expectedError);
                     done(!error);

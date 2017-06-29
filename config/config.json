@@ -4,5 +4,6 @@
     "MongoDatabase": "quiz",
     "ResolveExternalIP": false,
     "StaticGameId": "AAAA-AAAA",
-    "StaticGamePort": 55000
+    "StaticGamePort": 55000,
+    "IdleGameTimeout": 20000
 }

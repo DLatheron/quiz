@@ -44,11 +44,21 @@ function createServer(db, externalIP, port, callback) {
     });
 
     server.on('clientDisconnected', (connection) => {
-        if (server.numConnections === 0) {
+        function stopGameNow() {
             server.stop();
             server.game.stop(() => {
                 console.log(`Game ${server.game._id} stopped`);
             });
+        }
+
+        if (server.numConnections === 0) {
+            const idleGameTimeout = nconf.get('IdleGameTimeout');
+
+            if (idleGameTimeout <= 0) {
+                stopGameNow();
+            } else {
+                setTimeout(stopGameNow, idleGameTimeout);
+            }
         }
     });
 

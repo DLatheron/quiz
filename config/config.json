@@ -5,5 +5,5 @@
     "ResolveExternalIP": false,
     "StaticGameId": "AAAA-AAAA",
     "StaticGamePort": 55000,
-    "IdleGameTimeout": 20000
+    "IdleGameTimeout": 0
 }

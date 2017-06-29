@@ -28,7 +28,7 @@ describe('#GameServer', () => {
             gameServer = new GameServer();
             sandbox.stub(gameServer, 'log');
 
-            assert.strictEqual(gameServer.externalIPAddress, 'localhost');
+            assert.strictEqual(gameServer.options.externalIPAddress, 'localhost');
         });
 
         it('should override the external IP address if supplied', () => {
@@ -36,14 +36,14 @@ describe('#GameServer', () => {
             gameServer = new GameServer({ externalIPAddress: expectedAddress });
             sandbox.stub(gameServer, 'log');
 
-            assert.strictEqual(gameServer.externalIPAddress, expectedAddress);
+            assert.strictEqual(gameServer.options.externalIPAddress, expectedAddress);
         });
 
         it('should default the port to 0', () => {
             gameServer = new GameServer();
             sandbox.stub(gameServer, 'log');
 
-            assert.strictEqual(gameServer.port, undefined);
+            assert.strictEqual(gameServer.options.port, undefined);
         });
 
         it('should override the port if supplied', () => {
@@ -51,7 +51,7 @@ describe('#GameServer', () => {
             gameServer = new GameServer({ port: expectedPort});
             sandbox.stub(gameServer, 'log');
 
-            assert.strictEqual(gameServer.port, expectedPort);
+            assert.strictEqual(gameServer.options.port, expectedPort);
         });
 
         it('should create the net events handler', () => {

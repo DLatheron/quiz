@@ -60,3 +60,8 @@ Round Page
 - Remove a question;
 - Edit a question (if you can);
 - ALL ACTIONS ARE AUTOMATICALLY SAVED TO THE DATABASE...
+
+Known Issues
+-
+- When a game is created, there is no current mechanism to timeout the game if
+  no one joined.

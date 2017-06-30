@@ -28,7 +28,7 @@ class GameServer extends EventEmitter {
         );
 
         this._options = options;
-        this.netEvents = new NetEvents();
+        this._netEvents = new NetEvents();
 
         this.server = ws.createServer({ /* secure: true */ }, (connection) => {
             this._clientConnected(connection);
@@ -43,7 +43,7 @@ class GameServer extends EventEmitter {
 
         connection.sendText(`Welcome ${connection.name}\n`);
         this.broadcast(`${connection.name} joined the server\n`, connection);
-        this.netEvents.add(connection);
+        this._netEvents.add(connection);
 
         this._stopTimeoutIfNecessary();
 
@@ -59,27 +59,27 @@ class GameServer extends EventEmitter {
 
     _clientDisconnected(connection, code, reason) {
         this.broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
-        this.netEvents.remove(connection);
+        this._netEvents.remove(connection);
 
         this._startTimeoutIfNecessary(this.options.idleTimeout);
 
         this.emit('clientDisconnected', connection);
     }
 
-    _serverEmpty() {
-        return this.server.connections === 0;
+    get _serverEmpty() {
+        return this.server.connections.length === 0;
     }
 
     _startTimeoutIfNecessary(timeoutInMs) {
-        if (!this.timeout && this._serverEmpty) {
-            this.timeout = setTimeout(this._timeoutOccurred, timeoutInMs);
+        if (!this._timeout && this._serverEmpty) {
+            this._timeout = setTimeout(this._timeoutOccurred, timeoutInMs);
         }
     }
 
     _stopTimeoutIfNecessary() {
-        if (this.timeout && !this._serverEmpty) {
-            clearTimeout(this.timeout);
-            delete this.timeout;
+        if (this._timeout && !this._serverEmpty) {
+            clearTimeout(this._timeout);
+            delete this._timeout;
         }
     }
 
@@ -103,6 +103,10 @@ class GameServer extends EventEmitter {
 
     get options() {
         return this._options;
+    }
+
+    get netEvents() {
+        return this._netEvents;
     }
 
     start(callback) {

@@ -228,15 +228,20 @@ describe('#GameServer', () => {
         });
     });
 
-    describe('#_clientConnected', () => {
+    describe('connection', () => {
         const expectedPort = 52683;
 
         let createServerStub;
         let gameServer;
 
+        function simulateFakeConnection(connection) {
+            fakeServer.connections.push(connection);
+            createServerStub.yield(connection);
+        }
+
         beforeEach((done) => {
             createServerStub = sandbox.stub(ws, 'createServer')
-                 .returns(fakeServer);
+                .returns(fakeServer);
             sandbox.stub(global, 'setTimeout')
                 .returns(fakeTimer);
 
@@ -254,107 +259,107 @@ describe('#GameServer', () => {
             gameServer.start(done);
         });
 
-        function simulateFakeConnection(connection) {
-            fakeServer.connections.push(connection);
-            createServerStub.yield(connection);
-        }
+        describe('#_clientConnected', () => {
+            beforeEach(() => {
+            });
 
-        it('should set the connection\'s address', () => {
-            sandbox.stub(gameServer, 'broadcast');            
-            
-            simulateFakeConnection(fakeConnection);
+            it('should set the connection\'s address', () => {
+                sandbox.stub(gameServer, 'broadcast');            
+                
+                simulateFakeConnection(fakeConnection);
 
-            assert.strictEqual(fakeConnection.address, '127.0.0.1:45298');
+                assert.strictEqual(fakeConnection.address, '127.0.0.1:45298');
+            });
+
+            it('should set the connection\'s default name', () => {
+                sandbox.stub(gameServer, 'broadcast');            
+
+                simulateFakeConnection(fakeConnection);
+
+                assert.strictEqual(fakeConnection.name, '127.0.0.1:45298');
+            });
+
+            it('should cancel any timeouts if this is the first connection', () => {
+                sandbox.stub(gameServer, 'broadcast');            
+
+                sandbox.mock(global)
+                    .expects('clearTimeout')
+                    .withExactArgs(gameServer._timeout)
+                    .once();
+
+                simulateFakeConnection(fakeConnection);
+
+                assert.strictEqual(gameServer._timeout, undefined);
+            });
+
+            it('should not have any timeouts to cancel if there are other connections', () => {
+                sandbox.stub(gameServer, 'broadcast');            
+                simulateFakeConnection(fakeConnection);
+                sandbox.mock(global)
+                    .expects('clearTimeout')
+                    .never();
+
+                simulateFakeConnection(fakeConnection2);
+
+                assert(!gameServer._timeout);
+            });
+
+            it('should notify other connections', () => {
+                simulateFakeConnection(fakeConnection);
+                simulateFakeConnection(fakeConnection2);
+                sandbox.mock(gameServer)
+                    .expects('broadcast')
+                    .withExactArgs(
+                        sinon.match.string,
+                        fakeConnection3
+                    )
+                    .once();
+
+                simulateFakeConnection(fakeConnection3);
+            });
+
+            it('should register the connection with the net events handler', () => {
+                sandbox.mock(gameServer.netEvents)
+                    .expects('add')
+                    .once();
+                
+                createServerStub.yield(fakeConnection);
+            });
+
+            it('should raise a \'clientConnected\' event', () => {
+                sandbox.mock(gameServer)
+                    .expects('emit')
+                    .withArgs(
+                        'clientConnected',
+                        fakeConnection
+                    )
+                    .once();
+
+                createServerStub.yield(fakeConnection);
+            });
         });
 
-        it('should set the connection\'s default name', () => {
-            sandbox.stub(gameServer, 'broadcast');            
+        describe('when a client disconnected', () => {
+            beforeEach(() => {
+                // TODO: Set up a number of fake connections.
+            });
 
-            simulateFakeConnection(fakeConnection);
+            // it('should deregister closed connections from the net events handler', () => {
+            //     sandbox.mock(gameServer.netEvents)
+            //         .expects('remove')
+            //         .once();
+            //     sandbox.stub(fakeConnection, 'on')
+            //         .withArgs('close')
+            //         .yields();
 
-            assert.strictEqual(fakeConnection.name, '127.0.0.1:45298');
+            //     createServerStub.yield(fakeConnection);
+            // });
+
+
+            it('should inform other clients');
+            it('should deregister the connection from events');
+            it('should raise a \'clientDisconnected\' event');
         });
-
-        it('should cancel any timeouts if this is the first connection', () => {
-            sandbox.stub(gameServer, 'broadcast');            
-
-            sandbox.mock(global)
-                .expects('clearTimeout')
-                .withExactArgs(gameServer._timeout)
-                .once();
-
-            simulateFakeConnection(fakeConnection);
-
-            assert.strictEqual(gameServer._timeout, undefined);
-        });
-
-        it('should not have any timeouts to cancel if there are other connections', () => {
-            sandbox.stub(gameServer, 'broadcast');            
-            simulateFakeConnection(fakeConnection);
-            sandbox.mock(global)
-                .expects('clearTimeout')
-                .never();
-
-            simulateFakeConnection(fakeConnection2);
-
-            assert(!gameServer._timeout);
-        });
-
-        it('should notify other connections', () => {
-            simulateFakeConnection(fakeConnection);
-            simulateFakeConnection(fakeConnection2);
-            sandbox.mock(gameServer)
-                .expects('broadcast')
-                .withExactArgs(
-                    sinon.match.string,
-                    fakeConnection3
-                )
-                .once();
-
-            simulateFakeConnection(fakeConnection3);
-        });
-
-        it('should register the connection with the net events handler', () => {
-            sandbox.mock(gameServer.netEvents)
-                .expects('add')
-                .once();
-            
-            createServerStub.yield(fakeConnection);
-        });
-
-        it('should raise a \'clientConnected\' event', () => {
-            sandbox.mock(gameServer)
-                .expects('emit')
-                .withArgs(
-                    'clientConnected',
-                    fakeConnection
-                )
-                .once();
-
-            createServerStub.yield(fakeConnection);
-        });
-    });
-
-    describe('when a client disconnected', () => {
-        beforeEach(() => {
-            // TODO: Set up a number of fake connections.
-        });
-
-        // it('should deregister closed connections from the net events handler', () => {
-        //     sandbox.mock(gameServer.netEvents)
-        //         .expects('remove')
-        //         .once();
-        //     sandbox.stub(fakeConnection, 'on')
-        //         .withArgs('close')
-        //         .yields();
-
-        //     createServerStub.yield(fakeConnection);
-        // });
-
-
-        it('should inform other clients');
-        it('should deregister the connection from events');
-        it('should raise a \'clientDisconnected\' event');
     });
 
     describe('#stop', () => {

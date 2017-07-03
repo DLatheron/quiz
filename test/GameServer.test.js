@@ -29,30 +29,33 @@ describe('#GameServer', () => {
         };
 
         fakeConnection = {
-            on: () => {},
+            on: sandbox.stub(),
             socket: {
                 remoteAddress: '127.0.0.1',
                 remotePort: 45298
             },
-            sendText: () => {}
+            sendText: () => {},
+            removeListener: () => {}
         };
 
         fakeConnection2 = {
-            on: () => {},
+            on: sandbox.stub(),
             socket: {
                 remoteAddress: '127.0.0.1',
                 remotePort: 63427
             },
-            sendText: () => {}
+            sendText: () => {},
+            removeListener: () => {}
         };
 
         fakeConnection3 = {
-            on: () => {},
+            on: sandbox.stub(),
             socket: {
                 remoteAddress: '127.0.0.1',
                 remotePort: 34722
             },
-            sendText: () => {}
+            sendText: () => {},
+            removeListener: () => {}
         };
 
         GameServer = proxyquire('../src/GameServer', {
@@ -167,7 +170,7 @@ describe('#GameServer', () => {
         });        
     });
 
-    describe('#buildAddress', () => {
+    describe('#BuildAddress', () => {
         it('should build an address from a hostname and port', () => {
             const expectedAddress = 'ipAddress';
             const expectedPort = 34691;
@@ -230,6 +233,7 @@ describe('#GameServer', () => {
 
     describe('connection', () => {
         const expectedPort = 52683;
+        const idleTimeout = 32514;
 
         let createServerStub;
         let gameServer;
@@ -239,13 +243,27 @@ describe('#GameServer', () => {
             createServerStub.yield(connection);
         }
 
+        function simulateFakeDisconnection(connection) {
+            const index = fakeServer.connections.indexOf(connection);
+            fakeServer.connections.splice(index, 1);
+            connection.on.yield('close');
+        }
+
         beforeEach((done) => {
             createServerStub = sandbox.stub(ws, 'createServer')
                 .returns(fakeServer);
             sandbox.stub(global, 'setTimeout')
-                .returns(fakeTimer);
+                .callsFake((func, timeout) => { 
+                    fakeTimer.callback = func;
+                    fakeTimer.timeout = timeout;
+                    return fakeTimer; 
+                });
 
-            gameServer = new GameServer({ port: expectedPort });
+            gameServer = new GameServer({ 
+                port: expectedPort,
+                idleTimeout: idleTimeout
+            });
+
             gameServer.server.socket = {
                 address: () => { 
                     return { port: expectedPort }; 
@@ -342,6 +360,9 @@ describe('#GameServer', () => {
         describe('when a client disconnected', () => {
             beforeEach(() => {
                 // TODO: Set up a number of fake connections.
+                simulateFakeConnection(fakeConnection);
+                simulateFakeConnection(fakeConnection2);
+                simulateFakeConnection(fakeConnection3);
             });
 
             // it('should deregister closed connections from the net events handler', () => {
@@ -355,10 +376,45 @@ describe('#GameServer', () => {
             //     createServerStub.yield(fakeConnection);
             // });
 
+            it('should inform other clients', () => {
+                sandbox.mock(gameServer)
+                    .expects('broadcast')
+                    .withExactArgs(sinon.match.string)
+                    .once();
 
-            it('should inform other clients');
-            it('should deregister the connection from events');
-            it('should raise a \'clientDisconnected\' event');
+                simulateFakeDisconnection(fakeConnection2);
+            });
+
+            it('should deregister the connection from events', () => {
+                sandbox.mock(gameServer._netEvents)
+                    .expects('remove')
+                    .withExactArgs(fakeConnection3)
+                    .once();
+
+                simulateFakeDisconnection(fakeConnection3);
+            });
+
+            it('should raise a \'clientDisconnected\' event', () => {
+                sandbox.mock(gameServer)
+                    .expects('emit')
+                    .withExactArgs(
+                        'clientDisconnected',
+                        fakeConnection
+                    )
+                    .once();
+
+                simulateFakeDisconnection(fakeConnection);
+            });
+
+            it('should start the idle timeout if there are no more connections', () => {
+                simulateFakeDisconnection(fakeConnection2);
+                simulateFakeDisconnection(fakeConnection3);
+
+                assert(!gameServer._timeout);
+                simulateFakeDisconnection(fakeConnection);
+                assert(gameServer._timeout);
+                assert.strictEqual(gameServer._timeout.timeout, idleTimeout);
+            });
         });
     });
 

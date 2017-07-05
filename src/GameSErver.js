@@ -51,7 +51,7 @@ class GameServer extends EventEmitter {
             this._clientDisconnected(connection, code, reason);
         });
         connection.on('error', (error) => {
-            console.error(`${connection.name} generated error: ${error}`);
+            this.log('error', `${connection.name} generated error: ${error}`);
         });
 
         this.emit('clientConnected', connection);
@@ -71,8 +71,14 @@ class GameServer extends EventEmitter {
     }
 
     _startTimeoutIfNecessary(timeoutInMs) {
+        const self = this;
+
+        function timeoutOccurred() {
+            self.emit('IdleTimeout');
+        }
+
         if (!this._timeout && this._serverEmpty) {
-            this._timeout = setTimeout(this._timeoutOccurred, timeoutInMs);
+            this._timeout = setTimeout(timeoutOccurred, timeoutInMs);
         }
     }
 
@@ -81,10 +87,6 @@ class GameServer extends EventEmitter {
             clearTimeout(this._timeout);
             delete this._timeout;
         }
-    }
-
-    _timeoutOccurred() {
-
     }
 
     // 1) On start-up create a timer with the initial timeout.

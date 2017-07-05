@@ -16,6 +16,12 @@ describe('#GameServer', () => {
     let fakeConnection3;
     let fakeTimer;
 
+    function newGameServerNoLogging(options) {
+        const gameServer = new GameServer(options);
+        sandbox.stub(gameServer, 'log');
+        return gameServer;
+    }
+
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
 
@@ -72,7 +78,7 @@ describe('#GameServer', () => {
         it('should default the external IP address to localhost', () => {
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             assert.strictEqual(gameServer.options.externalIPAddress, 'localhost');
         });
@@ -81,7 +87,7 @@ describe('#GameServer', () => {
             const expectedAddress = 'someIPAddressOrHost';
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer({ externalIPAddress: expectedAddress });
+            gameServer = newGameServerNoLogging({ externalIPAddress: expectedAddress });
 
             assert.strictEqual(gameServer.options.externalIPAddress, expectedAddress);
         });
@@ -89,7 +95,7 @@ describe('#GameServer', () => {
         it('should default the port to undefined', () => {
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             assert.strictEqual(gameServer.options.port, undefined);
         });
@@ -98,7 +104,7 @@ describe('#GameServer', () => {
             const expectedPort = 28432;
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer({ port: expectedPort });
+            gameServer = newGameServerNoLogging({ port: expectedPort });
 
             assert.strictEqual(gameServer.options.port, expectedPort);
         });
@@ -106,7 +112,7 @@ describe('#GameServer', () => {
         it('should default the initial timeout to 60 seconds', () => {
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             assert.strictEqual(gameServer.options.initialTimeout, 60000);
         });
@@ -115,7 +121,7 @@ describe('#GameServer', () => {
             const expectedTimeout = 45273;
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer({ initialTimeout: expectedTimeout });
+            gameServer = newGameServerNoLogging({ initialTimeout: expectedTimeout });
 
             assert.strictEqual(gameServer.options.initialTimeout, expectedTimeout);
         });
@@ -123,7 +129,7 @@ describe('#GameServer', () => {
         it('should default the idle timeout to 30 seconds', () => {
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             assert.strictEqual(gameServer.options.idleTimeout, 30000);
         });
@@ -132,7 +138,7 @@ describe('#GameServer', () => {
             const expectedTimeout = 85276;
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer({ idleTimeout: expectedTimeout });
+            gameServer = newGameServerNoLogging({ idleTimeout: expectedTimeout });
 
             assert.strictEqual(gameServer.options.idleTimeout, expectedTimeout);
         });
@@ -140,7 +146,7 @@ describe('#GameServer', () => {
         it('should create the net events handler', () => {
             sandbox.stub(ws, 'createServer').returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             assert(gameServer.netEvents);
         });
@@ -152,7 +158,7 @@ describe('#GameServer', () => {
                 .withExactArgs(sinon.match.object, sinon.match.func)
                 .returns(fakeServer);
 
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
         });
 
         it('should start a timer with the value of the initial timeout', () => {
@@ -166,7 +172,7 @@ describe('#GameServer', () => {
                 )
                 .once();
             
-            gameServer = new GameServer({ initialTimeout: expectedTimeout });
+            gameServer = newGameServerNoLogging({ initialTimeout: expectedTimeout });
         });        
     });
 
@@ -191,8 +197,8 @@ describe('#GameServer', () => {
         let gameServer;
 
         beforeEach(() => {
-            gameServer = new GameServer({ port: expectedPort });
-            sandbox.stub(gameServer, 'log');
+            gameServer = newGameServerNoLogging({ port: expectedPort });
+
             gameServer.server.socket = {
                 address: () => { 
                     return { port: expectedPort }; 
@@ -259,7 +265,7 @@ describe('#GameServer', () => {
                     return fakeTimer; 
                 });
 
-            gameServer = new GameServer({ 
+            gameServer = newGameServerNoLogging({ 
                 port: expectedPort,
                 idleTimeout: idleTimeout
             });
@@ -416,11 +422,55 @@ describe('#GameServer', () => {
                 assert.strictEqual(gameServer._timeout.timeout, idleTimeout);
             });
         });
+
+        describe('timeouts', () => {
+            const initialTimeout = 10000;
+            const idleTimeout = 5000;
+
+            let clock;
+
+            beforeEach(() => {
+                clock = sinon.useFakeTimers();
+
+                gameServer = newGameServerNoLogging({ 
+                    initialTimeout: initialTimeout,
+                    idleTimeout: idleTimeout
+                });
+            });
+
+            afterEach(() => {
+                clock.restore();
+            });
+
+            it('should raise an idle timeout event if no connections are made before the initial timeout expires', () => {
+                sandbox.mock(gameServer)
+                    .expects('emit')
+                    .withExactArgs('IdleTimeout')
+                    .once();
+
+                clock.tick(initialTimeout);
+
+                assert.strictEqual(clock.now, initialTimeout);
+            });
+
+            it('should raise an idle timeout event after connections have been lost and not remade within the idle timeout period', () => {
+                simulateFakeConnection(fakeConnection);
+                simulateFakeDisconnection(fakeConnection);
+
+                sandbox.mock(gameServer)
+                    .expects('emit')
+                    .once();
+
+                clock.tick(idleTimeout); 
+
+                assert.strictEqual(clock.now, idleTimeout);
+            });
+        });        
     });
 
     describe('#stop', () => {
         it('should close the server', () => {
-            const gameServer = new GameServer();
+            const gameServer = newGameServerNoLogging();
 
             sandbox.mock(gameServer.server)
                 .expects('close')
@@ -436,7 +486,7 @@ describe('#GameServer', () => {
         let gameServer;
 
         beforeEach(() => {
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
 
             fakeConnections = [
                 { sendText: () => {} },
@@ -477,7 +527,8 @@ describe('#GameServer', () => {
         let gameServer;
 
         beforeEach(() => {
-            gameServer = new GameServer();
+            gameServer = newGameServerNoLogging();
+            
             fakeConnection = { sendText: () => {} };
         });
         

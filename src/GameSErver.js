@@ -61,7 +61,7 @@ class GameServer extends EventEmitter {
         this.broadcast(`${connection.name} left the server: ${code} - ${reason}\n`);
         this._netEvents.remove(connection);
 
-        this._startTimeoutIfNecessary(this.options.idleTimeout);
+        this._startTimeoutIfNecessary(this._options.idleTimeout);
 
         this.emit('clientDisconnected', connection);
     }
@@ -99,12 +99,16 @@ class GameServer extends EventEmitter {
         return `${ipAddress}:${port}`;
     }
 
-    get numConnections() {
-        return this.server.connections.length;
+    get externalIPAddress() {
+        return this._options.externalIPAddress;
     }
 
-    get options() {
-        return this._options;
+    get port() {
+        return this._options.port;
+    }
+
+    get numConnections() {
+        return this.server.connections.length;
     }
 
     get netEvents() {

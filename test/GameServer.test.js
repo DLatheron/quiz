@@ -80,7 +80,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging();
 
-            assert.strictEqual(gameServer.options.externalIPAddress, 'localhost');
+            assert.strictEqual(gameServer.externalIPAddress, 'localhost');
         });
 
         it('should override the external IP address if supplied', () => {
@@ -89,7 +89,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging({ externalIPAddress: expectedAddress });
 
-            assert.strictEqual(gameServer.options.externalIPAddress, expectedAddress);
+            assert.strictEqual(gameServer.externalIPAddress, expectedAddress);
         });
 
         it('should default the port to undefined', () => {
@@ -97,7 +97,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging();
 
-            assert.strictEqual(gameServer.options.port, undefined);
+            assert.strictEqual(gameServer.port, undefined);
         });
 
         it('should override the port if supplied', () => {
@@ -106,7 +106,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging({ port: expectedPort });
 
-            assert.strictEqual(gameServer.options.port, expectedPort);
+            assert.strictEqual(gameServer.port, expectedPort);
         });
 
         it('should default the initial timeout to 60 seconds', () => {
@@ -114,7 +114,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging();
 
-            assert.strictEqual(gameServer.options.initialTimeout, 60000);
+            assert.strictEqual(gameServer._options.initialTimeout, 60000);
         });
 
         it('should override the initial timeout if supplied', () => {
@@ -123,7 +123,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging({ initialTimeout: expectedTimeout });
 
-            assert.strictEqual(gameServer.options.initialTimeout, expectedTimeout);
+            assert.strictEqual(gameServer._options.initialTimeout, expectedTimeout);
         });
 
         it('should default the idle timeout to 30 seconds', () => {
@@ -131,7 +131,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging();
 
-            assert.strictEqual(gameServer.options.idleTimeout, 30000);
+            assert.strictEqual(gameServer._options.idleTimeout, 30000);
         });
 
         it('should override the idle timeout if supplied', () => {
@@ -140,7 +140,7 @@ describe('#GameServer', () => {
 
             gameServer = newGameServerNoLogging({ idleTimeout: expectedTimeout });
 
-            assert.strictEqual(gameServer.options.idleTimeout, expectedTimeout);
+            assert.strictEqual(gameServer._options.idleTimeout, expectedTimeout);
         });
 
         it('should create the net events handler', () => {

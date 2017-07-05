@@ -41,9 +41,12 @@ function createServer(db, externalIP, port, callback) {
     });
 
     server.on('clientConnected', (connection) => {
+        console.info(`Client ${connection.name} connected...`);
     });
 
     server.on('clientDisconnected', (connection) => {
+        console.info(`...client ${connection.name} disconnected`);
+        
         function stopGameNow() {
             server.stop();
             server.game.stop(() => {

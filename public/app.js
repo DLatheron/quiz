@@ -303,18 +303,40 @@ function isUndefined(arg) {
 }
 
 },{}],2:[function(require,module,exports){
-/* globals WebSocket, gameServerAddress, gameServerPort, gameId */
+/* globals gameServerAddress, gameServerPort, gameId */
 'use strict';
 
-const NetEvents = require('../common/NetEvents');
+const SocketReceiver = require('../common/SocketReceiver');
 
-const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`);
+const socketReceiver = new SocketReceiver({
+    gameServerAddress,
+    gameServerPort,
+    gameId
+});
 
-const netEvents = new NetEvents();
+socketReceiver.start();
+
+socketReceiver.on('open', () => {
+    console.log('SocketReceiver is open');
+});
+
+socketReceiver.on('closed', () => {
+    console.log('SocketReceiver is closed');
+});
+
+socketReceiver.on('error', (error) => {
+    console.log(`SocketReceiver has errored ${error}`);
+});
+
+socketReceiver.on('text', (text) => {
+    console.log(`SocketReceiver received message '${text}'`);
+});
+
+/*
 
 // Wrapper to allow use of NetEvents on the client and server.
 ws.on = (type, data) => { 
-    console.log(`[${type}] ${data}`);
+    console.log(`ws.on [${type}] ${data}`);
 };
 
 ws.onopen = (event) => {
@@ -322,11 +344,17 @@ ws.onopen = (event) => {
 
     netEvents.add(ws);
 
-    ws.send(`JOIN ${gameId}`);    
+    netEvents.on('JOINED', (connection) => {
+        console.log('NET EVENTS FIRED!!!');
+        const playerName = `Player_${connection.name}`;
+        connection.send(`NAME ${playerName}`);
+    });
+
+    ws.send(`JOIN ${gameId}`);
 };
 
 ws.onmessage = (event) => {
-    console.log(event.data);
+    console.log(`ws.onmessage ${event.data}`);
     ws.on('text', event.data);
 };
 
@@ -338,8 +366,8 @@ ws.onerror = (event) => {
 ws.onclose = (event) => {
     console.log('WebSocket connection closed');
 };
-
-},{"../common/NetEvents":3}],3:[function(require,module,exports){
+*/
+},{"../common/SocketReceiver":4}],3:[function(require,module,exports){
 /* globals require, module */
 'use strict';
 
@@ -412,6 +440,7 @@ class NetEvents extends EventEmitter {
     _registerConnection(connection) {
         const self = this;
         connection._netEventListener = (text) => {
+            //console.info(`Parsing ${text}...`);
             self.parse(connection, text);
         };
         connection.on('text', connection._netEventListener);
@@ -422,11 +451,86 @@ class NetEvents extends EventEmitter {
         connection.removeListener('text', connection._netEventListener);
         delete connection._netEventListener;
         this._connections.splice(index, 1);
-        
     }    
 }
 
 
 module.exports = NetEvents;
 
-},{"events":1}]},{},[2]);
+},{"events":1}],4:[function(require,module,exports){
+/* globals module, WebSocket */
+'use strict';
+
+const EventEmitter = require('events');
+const NetEvents = require('./NetEvents');
+
+
+class SocketReceiver extends EventEmitter {
+    constructor(options) {
+        super();
+
+        options = Object.assign(
+            {},
+            options
+        );
+        this._options = options;
+        this._netEvents = new NetEvents();
+    }
+
+    start() {
+        this._ws = new WebSocket(
+            `ws://${this._options.gameServerAddress}:${this._options.gameServerPort}`
+        );
+        this._ws.onopen = this._onOpen.bind(this);
+        this._ws.onmessage = this._onMessage.bind(this);
+        this._ws.onerror = this._onError.bind(this);
+        this._ws.onclose = this._onClose.bind(this);
+    }
+
+    send(message) {
+        this._ws.send(message);
+    }
+
+    _onOpen(event) {
+        console.log('WebSocket connection opened');
+
+        this._netEvents.add(this);
+
+        this._netEvents.on('JOINED', (connection) => {
+            this.log('log', 'NET EVENTS FIRED!!!');
+            const playerName = `Player_${connection.name}`;
+            connection.send(`NAME ${playerName}`);
+        });
+
+        this.send(`JOIN ${this._options.gameId}`);
+
+        this.emit('open');
+    }
+
+    _onMessage(event) {
+        this.log('log', `ws.onmessage ${event.data}`);
+        this.emit('text', event.data);
+    }
+
+    _onError(event) {
+        this._ws.onerror = (event) => {
+            this.log('log', `WebSocket connection error: ${event.error}`);
+            this.emit('error', event.error);
+        };
+    }
+
+    _onClose(event) {
+        this._ws.onclose = (event) => {
+            this.log('log', 'WebSocket connection closed');
+            this.emit('closed');
+        };    
+    }
+
+    log(type) {
+        console[type].call(Array.prototype.slice.call(arguments, 1));
+    }    
+}
+
+module.exports = SocketReceiver;
+
+},{"./NetEvents":3,"events":1}]},{},[2]);

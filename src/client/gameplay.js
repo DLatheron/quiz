@@ -1,15 +1,37 @@
-/* globals WebSocket, gameServerAddress, gameServerPort, gameId */
+/* globals gameServerAddress, gameServerPort, gameId */
 'use strict';
 
-const NetEvents = require('../common/NetEvents');
+const SocketReceiver = require('../common/SocketReceiver');
 
-const ws = new WebSocket(`ws://${gameServerAddress}:${gameServerPort}`);
+const socketReceiver = new SocketReceiver({
+    gameServerAddress,
+    gameServerPort,
+    gameId
+});
 
-const netEvents = new NetEvents();
+socketReceiver.start();
+
+socketReceiver.on('open', () => {
+    console.log('SocketReceiver is open');
+});
+
+socketReceiver.on('closed', () => {
+    console.log('SocketReceiver is closed');
+});
+
+socketReceiver.on('error', (error) => {
+    console.log(`SocketReceiver has errored ${error}`);
+});
+
+socketReceiver.on('text', (text) => {
+    console.log(`SocketReceiver received message '${text}'`);
+});
+
+/*
 
 // Wrapper to allow use of NetEvents on the client and server.
 ws.on = (type, data) => { 
-    console.log(`[${type}] ${data}`);
+    console.log(`ws.on [${type}] ${data}`);
 };
 
 ws.onopen = (event) => {
@@ -17,11 +39,17 @@ ws.onopen = (event) => {
 
     netEvents.add(ws);
 
-    ws.send(`JOIN ${gameId}`);    
+    netEvents.on('JOINED', (connection) => {
+        console.log('NET EVENTS FIRED!!!');
+        const playerName = `Player_${connection.name}`;
+        connection.send(`NAME ${playerName}`);
+    });
+
+    ws.send(`JOIN ${gameId}`);
 };
 
 ws.onmessage = (event) => {
-    console.log(event.data);
+    console.log(`ws.onmessage ${event.data}`);
     ws.on('text', event.data);
 };
 
@@ -33,3 +61,4 @@ ws.onerror = (event) => {
 ws.onclose = (event) => {
     console.log('WebSocket connection closed');
 };
+*/

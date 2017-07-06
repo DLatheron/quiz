@@ -70,6 +70,7 @@ class NetEvents extends EventEmitter {
     _registerConnection(connection) {
         const self = this;
         connection._netEventListener = (text) => {
+            //console.info(`Parsing ${text}...`);
             self.parse(connection, text);
         };
         connection.on('text', connection._netEventListener);
@@ -80,7 +81,6 @@ class NetEvents extends EventEmitter {
         connection.removeListener('text', connection._netEventListener);
         delete connection._netEventListener;
         this._connections.splice(index, 1);
-        
     }    
 }
 

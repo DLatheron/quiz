@@ -36,13 +36,13 @@ module.exports = function(grunt) {
             }
         },
         watch: {
-            browserify: {
-                files: ['src/client/**/*.js', 'src/common/**/*.js'],
-                tasks: ['browserify']
-            },
             test: {
                 files: ['Gruntfile.js', 'test/**/*.js', 'src/**/*.js'],
                 tasks: ['test']
+            },
+            browserify: {
+                files: ['src/client/**/*.js', 'src/common/**/*.js'],
+                tasks: ['browserify']
             }
         },
         browserify: {

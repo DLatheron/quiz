@@ -32,14 +32,14 @@ class SocketReceiver extends EventEmitter {
     }
 
     _onOpen(event) {
-        console.log('WebSocket connection opened');
+        this.log('log', 'WebSocket connection opened');
 
         this._netEvents.add(this);
 
         this._netEvents.on('JOINED', (connection) => {
             this.log('log', 'NET EVENTS FIRED!!!');
             const playerName = `Player_${connection.name}`;
-            connection.send(`NAME ${playerName}`);
+            this.send(`NAME ${playerName}`);
         });
 
         this.send(`JOIN ${this._options.gameId}`);

@@ -18,8 +18,8 @@ class SocketReceiver extends EventEmitter {
     }
 
     start() {
-        this._ws = new WebSocket(
-            `ws://${this._options.gameServerAddress}:${this._options.gameServerPort}`
+        this._ws = this._newWebSocket(
+            `ws://${this._options.address}:${this._options.port}`
         );
         this._ws.onopen = this._onOpen.bind(this);
         this._ws.onmessage = this._onMessage.bind(this);
@@ -53,17 +53,17 @@ class SocketReceiver extends EventEmitter {
     }
 
     _onError(event) {
-        this._ws.onerror = (event) => {
-            this.log('log', `WebSocket connection error: ${event.error}`);
-            this.emit('error', event.error);
-        };
+        this.log('log', `WebSocket connection error: ${event.error}`);
+        this.emit('error', event.error);
     }
 
     _onClose(event) {
-        this._ws.onclose = (event) => {
-            this.log('log', 'WebSocket connection closed');
-            this.emit('closed');
-        };    
+        this.log('log', 'WebSocket connection closed');
+        this.emit('closed');
+    }
+
+    _newWebSocket(url) {
+        return new WebSocket(url);
     }
 
     log(type) {

@@ -141,47 +141,46 @@ describe('#SocketReceiver', () => {
         });
     });
 
-    describe('#_onMessage', () => {
-        beforeEach(() => {
+    describe('event handlers', () => {
+        beforeEach(() => { 
             sandbox.stub(socketReceiver, '_newWebSocket')
                 .returns(fakeWebSocket);
 
             socketReceiver.start();
         });
-        
-        it('should raise a "text" event on receiving a message', (done) => {
-            const expectedMessage = 'This is an incoming message';
 
-            socketReceiver.on('text', (message) => {
-                assert.strictEqual(message, expectedMessage);
-                done();
+        describe('#_onMessage', () => {
+            it('should raise a "text" event on receiving a message', (done) => {
+                const expectedMessage = 'This is an incoming message';
+
+                socketReceiver.on('text', (message) => {
+                    assert.strictEqual(message, expectedMessage);
+                    done();
+                });
+
+                socketReceiver._ws.onmessage({ data: expectedMessage });
             });
-
-            socketReceiver._ws.onmessage({ data: expectedMessage });
         });
-    });
 
-    describe('#_onError', () => {
-        beforeEach(() => {
-            sandbox.stub(socketReceiver, '_newWebSocket')
-                .returns(fakeWebSocket);
+        describe('#_onError', () => {
+            it('should raise an "error" event on the connection erroring', (done) => {
+                const expectedError = 'This is an error';
 
-            socketReceiver.start();
-        });
-        
-        it.only('should raise an "error" event on the connection erroring', (done) => {
-            const expectedError = 'This is an error';
+                socketReceiver.on('error', (error) => {
+                    assert.strictEqual(error, expectedError);
+                    done();
+                });
 
-            socketReceiver.on('error', (error) => {
-                assert.strictEqual(error, expectedError);
-                done();
+                socketReceiver._ws.onerror({ error: expectedError });
             });
-
-            socketReceiver._ws.onerror({ error: expectedError });
         });
-    });
 
-    describe('#_onClose', () => {
-        it('should raise a "close" event on the connection closing');
+        describe('#_onClose', () => {
+            it('should raise a "closed" event on the connection closing', (done) => {
+                socketReceiver.on('closed', done);
+
+                socketReceiver._ws.onclose();
+            });
+        });
     });
 });

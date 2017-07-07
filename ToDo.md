@@ -1,4 +1,8 @@
 Next:
+-
+- When the game starts we already know the player's name, so remove the need to
+send that first message...
+
 - Assign a friendly name to a connection (can't be simply player 1 etc. because connections might disappear - but could the be the name of the player who connects?)
 - ~~After successful JOIN/JOINED handshake we could exchange the name of the player~~
 - ~~Debug hard-coding of the gameId and port used to allow much quicker setup, especially from the command line;~~
@@ -65,3 +69,7 @@ Known Issues
 -
 - When a game is created, there is no current mechanism to timeout the game if
   no one joined.
+
+Thoughts
+-
+- Support for password protected games - for businesses etc.

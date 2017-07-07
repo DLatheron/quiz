@@ -309,9 +309,9 @@ function isUndefined(arg) {
 const SocketReceiver = require('../common/SocketReceiver');
 
 const socketReceiver = new SocketReceiver({
-    gameServerAddress,
-    gameServerPort,
-    gameId
+    address: gameServerAddress,
+    port: gameServerPort,
+    gameId: gameId
 });
 
 socketReceiver.start();

@@ -7,6 +7,7 @@ const GameServer = require('../src/GameServer');
 const httpStatus = require('http-status-codes');
 const nconf = require('nconf');
 const tcpPortUsed = require('tcp-port-used');
+const _ = require('lodash');
 
 const router = express.Router();
 
@@ -142,6 +143,38 @@ router.get('/', (req, res) => {
 
 });
 
+router.get('/playerName/:gameId', (req, res) => {
+    // Authorization is irrelevant...
+    let defaultPlayerName = '';
+    
+    // TODO: Breakout into separate functon on the user.
+    //       Allow the user's profile to store a 'game name'.
+    if (req.user) {
+        if (req.user.firstName) {
+            defaultPlayerName += req.user.firstName;
+        }
+        if (req.user.lastName) {
+            if (defaultPlayerName.length > 0) {
+                defaultPlayerName += ' ';
+            }
+            defaultPlayerName += req.user.lastName;
+        }
+    }
+
+    res.render('playerName', {
+        title: 'Player\'s Name',
+        playerName: defaultPlayerName,
+        gameId: req.params.gameId
+    });
+});
+
+router.post('/playerName/:gameId', (req, res) => {
+    console.info(`To redirect to game ${req.params.gameId} with ${req.body.playerName}`);
+    
+    // TODO: Lookup the gameId and redirect to that page...
+    joinGame(req.db, req.params.gameId, req.body.playerName, res);
+});
+
 router.get('/create', (req, res) => {
     if (!req.user) {
         return res.sendStatus(httpStatus.UNAUTHORIZED);
@@ -173,11 +206,8 @@ router.post('/join', (req, res) => {
     res.redirect(`/game/join/${req.body.gameId}`);
 });
 
-router.get('/join/:gameId', (req, res) => {
-    // Authorization is irrelevant...
-    const gameId = req.params.gameId;
-
-    req.db.retrieveGame(gameId, (error, game) => {
+function joinGame(db, gameId, playerName, res) {
+    db.retrieveGame(gameId, (error, game) => {
         if (error) { 
             return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -188,11 +218,18 @@ router.get('/join/:gameId', (req, res) => {
 
         res.render('playGame', {
             title: 'Play Game',
-            gameId: gameId,
+            gameId,
             gameServerAddress: game.externalIPAddress,
-            gameServerPort: game.port
+            gameServerPort: game.port,
+            playerName
         });
     });
+}
+
+router.get('/join/:gameId', (req, res) => {
+    // Authorization is irrelevant...
+    joinGame(req.db, req.params.gameId, res);
+
     // TODO: 
     // - Lookup this game id in the database.
     // - Generate a page which includes a link to the server address.

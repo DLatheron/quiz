@@ -4,11 +4,12 @@
     gameId = '<%= gameId %>';
     gameServerAddress = '<%= gameServerAddress %>';
     gameServerPort = <%= gameServerPort %>;
+    playerName = <%= playerName %>;
 </script> 
 
 <script src='/app.js'></script>
 
-<h1>Welcome to <%= gameId %></h1>
+<h1>Welcome <%= playerName %> to <%= gameId %></h1>
 
 <p><%= gameId %></p>
 <p><%= gameServerAddress %>:<%= gameServerPort %></p>

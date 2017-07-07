@@ -1,0 +1,15 @@
+<% layout("layout") -%>
+
+<div class="container">
+    <div class="row">
+        <!-- Player profile image to go here and to be changeable -->
+        <div class="col-sm-6 col-md-4 col-md-offset-4">
+            <form class="form-setPlayerName", action="/game/playerName/<%= gameId %>", method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="text" name="playerName" value="<%= playerName %>" class="form-control" placeholder="Player Name" required="true" autofocus="true" />
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Done</button>
+                <span class="clearfix" />
+            </form>
+        </div>
+    </div>
+</div>
